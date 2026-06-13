@@ -1,0 +1,26 @@
+# Runtime outputs
+/output/**
+!/output/.gitkeep
+/backups/**
+!/backups/.gitkeep
+/inbox/**
+!/inbox/.gitkeep
+
+# Local state
+/workspace/meta/maintenance-state.json
+/workspace/meta/memory-candidates.md
+/workspace/meta/scheduled-task-state.json
+/workspace/meta/codex-automation-state.md
+/workspace/meta/codex-automation-trigger.json
+/workspace/meta/package-registry.json
+
+# Staged third-party packages
+/tools/packages/**
+!/tools/packages/.gitkeep
+
+# Keep runtime directory placeholders
+!.gitkeep
+
+# Python
+__pycache__/
+*.pyc

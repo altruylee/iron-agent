@@ -1,0 +1,15 @@
+{
+  "daily_maintenance": {
+    "enabled": true,
+    "idle_window": {
+      "start": "23:00",
+      "end": "06:00",
+      "timezone": "Asia/Shanghai"
+    },
+    "min_hours_between_runs": 20,
+    "auto_apply_memory": false,
+    "shadow_review": true,
+    "max_memory_candidates": 50,
+    "write_report": true
+  }
+}

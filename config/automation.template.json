@@ -1,0 +1,13 @@
+{
+  "windows_preflight": {
+    "enabled": false,
+    "task_name": "IronAgentDailyMaintenance",
+    "time": "02:30"
+  },
+  "codex_shadow_review": {
+    "enabled": false,
+    "name": "Iron Agent Shadow Review",
+    "time": "02:45",
+    "prompt": "system/prompts/codex-shadow-maintenance.md"
+  }
+}
