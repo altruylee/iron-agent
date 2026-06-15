@@ -3,6 +3,42 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.1](#031)
+- [0.3.2](#032)
+- [0.3.0](#030)
+- [0.2.0](#020)
+
+## 0.3.2
+
+- Clarified Iron Agent as a prompt/rule/SOP overlay for daily model use.
+- Changed memory routing misses to normal non-error output so agents continue as new content.
+- Added daily-use model documentation.
+
+## 0.3.1
+
+- Added installable editor adapters for Claude Code, Cursor, VS Code Copilot, Cline, and Roo Code.
+- Added `iron editor list/install/doctor`.
+- Added adapter documentation and root editor rule files.
+
+## 0.3.0
+
+- Added local offline Web UI via `iron web`.
+- Added interactive evolution candidate preview and batch apply support.
+- Added starter packs for developer, researcher, PM, and writer workflows.
+- Added formal domain agent template and `iron agent new`.
+- Added evolution threshold config and `iron config`.
+- Added wiki/memory boundary documentation and move commands.
+- Added machine-routed memory index, hot/warm/cold memory tiers, and low-token index slimming checks.
+- Added editor adapters for Claude Code, Cursor, VS Code Copilot, Cline, and Roo Code.
+- Clarified daily use model: route first, overlay on hit, normal conversation on miss, nightly organization and user notification.
+
+## 0.2.0
+
+- Added installable `iron` CLI package.
+- Added `iron init`, `check`, `doctor`, `report`, `clean`, `memory`, `task`, `evolve`, `quickstart`, and `backup` commands.
+- Added manifest-backed required file validation.
+- Added automatic `install_status` maintenance during CLI initialization and doctor repair.
+- Added `QUICKSTART.md`, troubleshooting docs, CI example, and end-to-end demo assets.
 
 ## 0.1.0
 

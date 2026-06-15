@@ -1,0 +1,3 @@
+language: zh-CN
+tools: ["markdown", "spreadsheet"]
+output_format: product decision memo

@@ -7,6 +7,7 @@ memory. This is Iron Agent's self-organizing memory loop.
 
 - [Read Path From Here](#read-path-from-here)
 - [Layered Memory Model](#layered-memory-model)
+- [Low-Token Directory Rules](#low-token-directory-rules)
 - [Trigger](#trigger)
 - [Process](#process)
 - [SOP Promotion](#sop-promotion)
@@ -18,7 +19,7 @@ memory. This is Iron Agent's self-organizing memory loop.
 
 | Need | Next file |
 |---|---|
-| Layered memory index | `workspace/memory/INDEX.md` |
+| Machine memory index | `workspace/memory/index.json` |
 | Global durable memory | `workspace/meta/memory.md` |
 | Source task logs | `workspace/meta/task-log.jsonl` |
 | Execution rules | `system/skills/codex-agent.md` |
@@ -37,7 +38,18 @@ Memory is split into three layers:
 - Semantic Memory: `workspace/memory/semantic/sops/`
 
 Do not merge everything into `workspace/meta/memory.md`. Use
-`workspace/memory/INDEX.md` to route by topic.
+`system/scripts/memory_router.py` to route by topic.
+
+## Low-Token Directory Rules
+
+- Directory files route only; content belongs in leaf files.
+- Top memory index: maximum 50 lines.
+- Second-level index: maximum 100 lines.
+- Third-level index: maximum 150 lines.
+- Single SOP: maximum 200 lines.
+- Default reads use `workspace/memory/hot/INDEX.md`.
+- Warm and cold memory are read only when `memory_router.py` returns them.
+- If a directory exceeds its limit, split by topic or move stale entries to cold.
 
 ## Trigger
 
@@ -52,8 +64,8 @@ Do not run memory maintenance during normal conversation unless the user asks.
 
 ## Process
 
-1. Read `workspace/memory/INDEX.md`.
-2. Read only the matched topic branch or async review queue.
+1. Run `python system/scripts/memory_router.py --task "<task>"`.
+2. Read only the returned topic branch or async review queue.
 3. Read recent `workspace/meta/task-log.jsonl` entries only as needed.
 4. Run:
 
@@ -65,7 +77,8 @@ python system/scripts/compact_memory.py --root .
 6. Remove candidates that are transient, duplicated, speculative, too broad, or sensitive.
 7. Promote stable SOPs to `workspace/memory/semantic/sops/`.
 8. Shrink related short-term or review cache to links only.
-9. Append a task log for the maintenance action.
+9. Run `python system/scripts/memory_index_maintenance.py --root . --apply`.
+10. Append a task log for the maintenance action.
 
 Use `--apply` only when the candidate file is acceptable or the user explicitly asks for automatic merge:
 
@@ -111,8 +124,8 @@ Reject:
 - Deduplicate against existing `memory.md`.
 - Keep each line short.
 - Preserve the existing section structure.
-- Preserve the `## Directory` section and any upstream links.
-- Preserve topic routing in `workspace/memory/INDEX.md`.
+- Preserve the `## Directory` section as route-only.
+- Preserve topic routing in `workspace/memory/index.json`.
 - Prefer revising an existing line over adding a near-duplicate.
 - If unsure, leave the candidate in `memory-candidates.md` and ask the user.
 
@@ -121,7 +134,7 @@ Reject:
 After maintenance:
 
 1. Confirm `memory.md` still has the standard sections.
-2. Confirm `workspace/memory/INDEX.md` routes the changed topic.
+2. Confirm `memory_router.py` returns the changed topic.
 3. Confirm no obvious secrets were added.
 4. Run `system/scripts/structure_integrity.py`.
 5. Run `system/scripts/health_check.py`.

@@ -1,0 +1,3 @@
+language: zh-CN
+tools: ["browser", "markdown"]
+output_format: cited research notes

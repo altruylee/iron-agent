@@ -1,0 +1,3 @@
+language: zh-CN
+tools: ["python", "git"]
+output_format: concise engineering notes

@@ -1,0 +1,7 @@
+# Evolution thresholds. All changes require human review unless auto_apply is true.
+friction_threshold: 3
+command_threshold: 5
+min_token_saving: 100
+window_days: 7
+max_candidates_per_run: 5
+auto_apply: false

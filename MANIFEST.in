@@ -1,0 +1,26 @@
+include README.md
+include QUICKSTART.md
+include CLAUDE.md
+include SECURITY.md
+include CONTRIBUTING.md
+include CHANGELOG.md
+include LICENSE
+include manifest.json
+include install.py
+include install.ps1
+include .clinerules
+recursive-include .cursor *
+recursive-include .github *
+recursive-include .roo *
+recursive-include codex-global-skill *
+recursive-include adapters *
+recursive-include config *
+recursive-include docs *
+recursive-include examples *
+recursive-include packs *
+recursive-include system *
+recursive-include templates *
+recursive-include wiki *
+recursive-include workspace *
+recursive-exclude * __pycache__
+recursive-exclude * *.pyc

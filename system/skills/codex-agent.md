@@ -9,7 +9,7 @@ task logs, and durable memory.
 - [Workflow](#workflow)
 - [Read Path From Here](#read-path-from-here)
 - [Token Saving Rules](#token-saving-rules)
-- [Layered Memory Rules](#layered-memory-rules)
+- [Prompt And Rule Overlay](#prompt-and-rule-overlay)
 - [Domain Agent Rules](#domain-agent-rules)
 - [Permission Levels](#permission-levels)
 - [Communication Rules](#communication-rules)
@@ -51,14 +51,19 @@ task logs, and durable memory.
    - `memory`: update durable preferences, procedures, or project facts.
    - `maintenance`: improve this workspace structure.
 4. Classify the permission level.
-5. Check whether a registered domain agent matches the task.
-6. Read the smallest sufficient local context.
-7. Execute the task.
-8. Verify with the best available check.
-9. Append a JSONL task log.
-10. Update active context only when continuation state matters.
-11. Queue memory or SOP candidates for async review only when useful.
-12. If Markdown navigation, memory, skills, or core docs changed, verify structure integrity.
+5. Run the memory router for accumulated prompts, rules, SOPs, and preferences.
+6. If the router returns paths, read only those paths and apply them as an
+   overlay to the user's current request.
+7. If the router returns no paths, treat the request as new content and continue
+   normally.
+8. Check whether a registered domain agent matches the task.
+9. Read the smallest sufficient local context.
+10. Execute the task.
+11. Verify with the best available check.
+12. Append a JSONL task log.
+13. Update active context only when continuation state matters.
+14. Queue prompt/rule/SOP candidates for async review only when useful.
+15. If Markdown navigation, memory, skills, or core docs changed, verify structure integrity.
 
 ## Token Saving Rules
 
@@ -75,27 +80,36 @@ These rules are hard boundaries.
 - Do not trigger memory maintenance, self-evolution, broad deduplication, or
   background merging during ordinary live conversation.
 
-## Layered Memory Rules
+## Prompt And Rule Overlay
 
-Memory has three layers:
+Iron Agent stores the user's accumulated prompts, rules, SOPs, preferences, and
+stable memory. The goal is not to read a large knowledge base; the goal is to
+cheaply find the small overlay that makes the model behave as if it knows the
+user better.
+
+Memory has hot/warm/cold routing plus semantic SOP leaves:
 
 | Layer | Path | Rule |
 |---|---|---|
+| Hot | `workspace/memory/hot/INDEX.md` | Recent high-value prompt/rule routes |
+| Warm | `workspace/memory/warm/INDEX.md` | Useful but less frequent routes |
+| Cold | `workspace/memory/cold/INDEX.md` | Historical archive; do not read by default |
 | Short-Term Memory | `workspace/memory/short-term/INDEX.md` | Minimal active-session anchors only |
 | Episode Memory | `workspace/memory/episodes/INDEX.md` | Topic fragments reached by tree paths |
-| Semantic Memory | `workspace/memory/semantic/INDEX.md` | Fixed SOPs and reusable rules |
+| Semantic Memory | `workspace/memory/semantic/INDEX.md` | Fixed prompts, SOPs, and reusable rules |
 
 Default memory read flow:
 
-1. Read `workspace/memory/INDEX.md`.
-2. Route the task with the index or:
+1. Route the task:
 
 ```bash
 python system/scripts/memory_router.py --root . --task "{user task}"
 ```
 
-3. Read only the returned topic files.
+2. If paths are returned, read only those topic files.
+3. Use matching prompts/rules/SOPs as an overlay on the user's request.
 4. Do not read unrelated topic memory.
+5. If no paths are returned, continue normally and log candidates only when useful.
 
 Examples:
 
@@ -107,7 +121,9 @@ SOP promotion is async:
 
 - Good SOPs are copied into `workspace/memory/semantic/sops/`.
 - Related short-term or review cache should be cleared or reduced to a link.
-- Daily maintenance and shadow review handle this work outside the live response path.
+- Daily maintenance and shadow review organize daily conversation traces into
+  prompts, rules, SOPs, and directory entries outside the live response path.
+- Maintenance output should tell the user what was organized.
 
 ## Domain Agent Rules
 
@@ -228,7 +244,7 @@ Prefer using `system/scripts/append_task_log.py` when available.
 
 ## Memory Rules
 
-Use `workspace/meta/memory.md` only for global stable knowledge. Do not read it
+Use `workspace/meta/memory.md` only for global stable preferences/rules. Do not read it
 by default for every task.
 
 Use `workspace/memory/INDEX.md` for topic routing before loading memory.

@@ -11,7 +11,8 @@
 
 ## Role
 
-Run Iron Agent AI shadow maintenance for the current workspace.
+Run Iron Agent AI shadow maintenance for the current workspace. Convert daily
+usage traces into concise prompts, rules, SOPs, and low-token directory routes.
 
 ## Read Path
 
@@ -27,9 +28,11 @@ Read only these entry points unless a queued file links to a narrower target:
 ## Allowed Work
 
 - Review queued shadow-review files.
-- Promote stable SOP bullets to matching files under `workspace/memory/semantic/sops/`.
+- Promote stable prompt/rule/SOP bullets to matching files under
+  `workspace/memory/semantic/sops/`.
 - Shrink processed queue files to links and status notes.
 - Run `python system/scripts/shadow_reviewer.py --root .`.
+- Run `python system/scripts/memory_index_maintenance.py --root . --apply`.
 - Run structure and health checks.
 
 ## Forbidden Work
@@ -56,6 +59,8 @@ python system/scripts/health_check.py --root .
 Return a concise maintenance result:
 
 - queued files processed,
-- SOP files updated,
+- prompt/rule/SOP files updated,
+- index routes updated or slimmed,
+- user-visible summary of what Iron Agent learned,
 - checks run,
 - blockers, if any.

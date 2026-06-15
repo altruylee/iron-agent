@@ -41,6 +41,9 @@ RUNTIME_DIRS = [
     "wiki/concepts",
     "wiki/explorations",
     "workspace/meta",
+    "workspace/memory/hot",
+    "workspace/memory/warm",
+    "workspace/memory/cold",
 ]
 
 RUNTIME_FILES = [

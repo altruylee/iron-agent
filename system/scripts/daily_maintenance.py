@@ -177,10 +177,16 @@ def main() -> int:
     if shadow_result.stderr.strip():
         lines.append(f"shadow stderr: {shadow_result.stderr.strip()}")
 
+    slim_script = root / "system" / "scripts" / "memory_index_maintenance.py"
+    slim_result = run_python(slim_script, ["--root", str(root), "--apply", "--write-report"])
+    lines.append(slim_result.stdout.strip() or "Memory index slimming completed")
+    if slim_result.stderr.strip():
+        lines.append(f"index stderr: {slim_result.stderr.strip()}")
+
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state = {
         "last_run_at": now.isoformat(timespec="seconds"),
-        "last_status": "ok" if result.returncode == 0 and shadow_result.returncode == 0 else "error",
+        "last_status": "ok" if result.returncode == 0 and shadow_result.returncode == 0 and slim_result.returncode == 0 else "error",
         "auto_apply_memory": bool(daily.get("auto_apply_memory", False)),
         "shadow_review": bool(daily.get("shadow_review", True)),
     }
@@ -198,7 +204,7 @@ def main() -> int:
     append_task_log(root, report_path, "daily maintenance completed")
 
     print("\n".join(lines))
-    return result.returncode or shadow_result.returncode
+    return result.returncode or shadow_result.returncode or slim_result.returncode
 
 
 if __name__ == "__main__":

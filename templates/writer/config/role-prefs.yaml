@@ -1,0 +1,3 @@
+language: zh-CN
+tools: ["markdown"]
+output_format: structured article draft

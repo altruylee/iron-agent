@@ -1,15 +1,16 @@
 # Iron Agent Workspace Instructions
 
 This folder is a local, file-driven AI workspace for Codex. It is not an app.
-Its purpose is to keep materials, work in progress, outputs, logs, and durable
-memory in predictable places so future Codex sessions can continue the work.
+Its purpose is to keep accumulated prompts, rules, SOPs, preferences, logs, and
+durable memory in predictable places so future AI sessions use fewer tokens and
+feel more personalized to the user.
 
 ## Directory
 
 - [Start Here](#start-here)
 - [First Principle](#first-principle)
 - [Installation State](#installation-state)
-- [Runtime Boundaries](#runtime-boundaries)
+- [Memory Routing Contract](#memory-routing-contract)
 - [Pack Roadmap](#pack-roadmap)
 - [Navigation Index](#navigation-index)
 - [Task Read Paths](#task-read-paths)
@@ -27,7 +28,10 @@ For every task in this workspace:
 4. Read `system/skills/codex-agent.md`.
 5. If the user says "continue", "last time", "resume", or similar, read
    `workspace/meta/active-context.md` before doing anything else.
-6. For memory, read `workspace/memory/INDEX.md` and only the matched branch.
+6. For memory/rules, run `python system/scripts/memory_router.py --task "<task>"`.
+   If it returns paths, read only those paths and layer the prompts/rules onto
+   the user request. If it returns no paths, treat the request as new content
+   and continue normally.
 7. Route materials and outputs using `wiki/_schema.md`.
 8. Record finished work in `workspace/meta/task-log.jsonl` when practical.
 9. Update `workspace/meta/active-context.md` when there is useful continuation
@@ -39,6 +43,9 @@ Iron Agent optimizes for precise, low-token navigation.
 
 - Keep every request and response concise and task-relevant.
 - Every Markdown file must contain `## Directory`.
+- Directory sections are routing only; do not put content or explanations in them.
+- Top memory indexes must stay low-token: top <= 50 lines, second level <= 100,
+  third level <= 150, single SOP <= 200.
 - Every large or multi-file area must be reachable through a tree-like read
   path from `AGENTS.md`.
 - Use the directory and read-path tables before broad workspace scans.
@@ -53,10 +60,33 @@ Iron Agent optimizes for precise, low-token navigation.
 - Do not store or merge full chat history.
 - Do not run self-evolution or memory consolidation in the live conversation
   unless the user explicitly asks.
-- Use `workspace/memory/INDEX.md` and tree paths to load only the relevant
-  topic branch.
+- Use `system/scripts/memory_router.py` before reading memory. Default to hot
+  memory; warm/cold archives are script-routed only.
+- A routing miss is not an error during normal work. Continue with the user's
+  request and record useful prompt/rule candidates for nightly maintenance.
 - If context is missing, output `[缺少前置条件：请补充XX]` and stop.
 - Do not restate the user's original request in the answer.
+
+## Memory Routing Contract
+
+Memory/rule lookup flow:
+
+1. User question.
+2. Run `python system/scripts/memory_router.py --task "<task>"`.
+3. If paths are returned, read the returned 1-5 paths.
+4. Apply relevant prompts, rules, preferences, and SOPs as an overlay on the
+   user's current request.
+5. If no paths are returned, answer normally as new content and add concise
+   candidates to task logs or friction logs when useful.
+6. Nightly maintenance organizes candidates into prompts/rules/SOPs and reports
+   what changed to the user.
+
+Rules:
+
+- `AGENTS.md` and `workspace/memory/INDEX.md` answer only which class to enter.
+- Detailed information belongs only in leaf files.
+- If an index exceeds its line limit, split it or move cold entries to `cold/`.
+- Do not block normal conversation just because no matching directory exists.
 
 ## Installation State
 
@@ -100,7 +130,7 @@ Use this index before scanning the repository.
 | Install skills | `system/skills/skill-installation.md` | Source-first skill install with security audit |
 | Integrate engineering packages | `system/skills/engineering-package.md` | Stage and route repo-level packages such as external skill packs |
 | Resume previous work | `workspace/meta/active-context.md` | Short-lived continuation anchors |
-| Route memory | `workspace/memory/INDEX.md` | Three-layer memory index and topic paths |
+| Route prompts/rules | `system/scripts/memory_router.py` | Machine-routed low-token overlays |
 | Use global durable memory | `workspace/meta/memory.md` | Global preferences only when needed |
 | Maintain memory | `system/skills/memory-maintenance.md` | Extract, classify, dedupe, and merge memory candidates |
 | Daily idle maintenance | `system/skills/daily-maintenance.md` | Run scheduled housekeeping and memory preparation |
@@ -122,7 +152,7 @@ Follow the shortest matching path.
 | Pack install | `install.ps1` or `install.py` -> `codex-global-skill/SKILL.md` -> target workspace `AGENTS.md` |
 | Release publish | `AGENTS.md` -> `system/scripts/release_cleanup.py` -> `system/scripts/release_check.py` |
 | General execution | `AGENTS.md` -> `workspace/workspace-config.md` -> `system/skills/codex-agent.md` |
-| Topic memory lookup | `AGENTS.md` -> `workspace/memory/INDEX.md` -> matched episode/SOP branch |
+| Prompt/rule lookup | `AGENTS.md` -> `system/scripts/memory_router.py` -> returned paths only -> user request |
 | User agent import | `AGENTS.md` -> `system/skills/domain-agent-import.md` -> source agent file -> `packs/domain-agents/INDEX.md` |
 | Domain-matched task | `AGENTS.md` -> `system/skills/codex-agent.md` -> `packs/domain-agents/INDEX.md` -> matching `RUNTIME.md` -> matching `RULES.md` |
 | Skill install | `AGENTS.md` -> `system/skills/skill-installation.md` -> user-provided source -> `system/scripts/audit_skill.py` |

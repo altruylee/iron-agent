@@ -3,26 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-
-REQUIRED = [
-    "README.md",
-    "SECURITY.md",
-    "CONTRIBUTING.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "AGENTS.md",
-    "manifest.json",
-    "system/scripts/release_cleanup.py",
-    "system/scripts/release_check.py",
-    "examples/development-agent.md",
-    "examples/finance-settlement-shadow-review.md",
-    "examples/user-registration-sop.md",
-]
 
 SKIP_FILES = {"system/scripts/release_check.py"}
 
@@ -33,14 +19,22 @@ FORBIDDEN_PATTERNS = [
     re.compile(r"iron-agent-shadow-review", re.IGNORECASE),
 ]
 
-SKIP_DIRS = {".git", "__pycache__", "output", "backups", "tools/packages"}
+SKIP_DIRS = {".git", "__pycache__", "output", "backups", "tools", "iron.egg-info"}
 
 
 def skip(path: Path, root: Path) -> bool:
     rel = path.relative_to(root).as_posix()
     if rel in SKIP_FILES:
         return True
-    return any(rel == item or rel.startswith(f"{item}/") for item in SKIP_DIRS)
+    return any(part in SKIP_DIRS for part in path.relative_to(root).parts)
+
+
+def required_files(root: Path) -> list[str]:
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    required = manifest.get("required", [])
+    if not isinstance(required, list):
+        raise SystemExit("manifest.json required must be a list")
+    return [str(item) for item in required]
 
 
 def run(cmd: list[str]) -> int:
@@ -55,7 +49,7 @@ def main() -> int:
     root = Path(args.root).resolve()
 
     failures: list[str] = []
-    for rel in REQUIRED:
+    for rel in required_files(root):
         if not (root / rel).exists():
             failures.append(f"missing {rel}")
 

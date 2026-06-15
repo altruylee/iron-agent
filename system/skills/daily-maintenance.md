@@ -1,8 +1,8 @@
 # Daily Maintenance Skill
 
 Use this skill to run Iron Agent's daily idle maintenance. The default job
-prepares memory candidates, runs shadow review, and writes a maintenance report.
-It keeps high-token memory and evolution work outside live conversation.
+organizes day-to-day conversation traces into prompts, rules, SOPs, indexes, and
+reports. It keeps high-token organization outside live conversation.
 
 ## Directory
 
@@ -47,6 +47,8 @@ Run daily maintenance when:
 - Run shadow review only during scheduled maintenance or explicit user request.
 - Always write a task log entry.
 - Preserve generated review files for user inspection.
+- Tell the user what was organized: new prompts, new rules, moved indexes,
+  unresolved candidates, and anything requiring approval.
 
 ## Process
 
@@ -61,12 +63,14 @@ The script will:
 1. Read `config/maintenance.json`.
 2. Check the idle window and last run time.
 3. Run memory candidate preparation.
-4. Run local shadow review to promote deterministic SOP candidates.
-5. Optionally apply approved global memory candidates if configured.
-6. Write `workspace/meta/maintenance-state.json`.
-7. Write `workspace/meta/codex-automation-trigger.json`.
-8. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
-9. Append a task log entry.
+4. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
+5. Slim indexes and keep top-level routing low-token.
+6. Optionally apply approved global memory candidates if configured.
+7. Write `workspace/meta/maintenance-state.json`.
+8. Write `workspace/meta/codex-automation-trigger.json`.
+9. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
+10. Append a task log entry.
+11. Surface a concise user notice from the maintenance report.
 
 Use `--force` to run outside the idle window:
 
