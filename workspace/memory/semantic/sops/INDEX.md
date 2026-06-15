@@ -14,7 +14,7 @@ Fixed SOP rule library. Load only the SOP required by the current topic.
 
 | Topic | File |
 |---|---|
-| 财务结算 | `finance-settlement.md` |
+| 任务复盘 | `task-review.md` |
 | 用户注册 | `user-registration.md` |
 
 ## Rules

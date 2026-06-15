@@ -12,7 +12,7 @@ from pathlib import Path
 TZ = timezone(timedelta(hours=8))
 
 DOMAIN_KEYWORDS = {
-    "investing": ["invest", "stock", "finance", "market", "valuation", "serenity", "股票", "投资", "投研", "估值"],
+    "business": ["business", "customer", "growth", "metrics", "业务", "客户", "增长", "指标"],
     "coding": ["code", "python", "typescript", "javascript", "repo", "cli", "test", "代码", "开发"],
     "writing": ["writing", "article", "copy", "newsletter", "blog", "写作", "文章"],
     "research": ["research", "analysis", "source", "paper", "study", "研究", "分析"],
@@ -153,4 +153,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

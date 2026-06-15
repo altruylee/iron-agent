@@ -8,9 +8,9 @@ from pathlib import Path
 
 
 FALLBACK_INDEX = {
-    "财务结算": [
-        "workspace/memory/episodes/finance/settlement/INDEX.md",
-        "workspace/memory/semantic/sops/finance-settlement.md",
+    "任务复盘": [
+        "workspace/memory/episodes/workflow/task-review/INDEX.md",
+        "workspace/memory/semantic/sops/task-review.md",
     ],
     "用户注册": [
         "workspace/memory/episodes/user/registration/INDEX.md",

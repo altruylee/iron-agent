@@ -41,7 +41,7 @@ Collect these stable basics:
 1. Display name: what should agents call the user?
 2. Language: Chinese only, English only, or mixed?
 3. Communication style: concise, detailed, step-by-step, or direct execution first?
-4. Main work types: code, research, investing, writing, operations, documents, automation, other?
+4. Main work types: code, research, business, writing, operations, documents, automation, other?
 5. Important local paths: projects, data folders, notes, downloads, or other hubs.
 6. Default output style: report, bullet summary, table, markdown file, code patch, other?
 7. Permission preference: conservative, balanced, or autonomous within workspace?

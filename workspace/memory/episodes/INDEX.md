@@ -15,7 +15,7 @@ reading global memory.
 
 | Topic | Path |
 |---|---|
-| 财务结算 | `finance/INDEX.md` |
+| 任务复盘 | `workflow/INDEX.md` |
 | 用户注册 | `user-registration/INDEX.md` |
 | 开发 | `development/INDEX.md` |
 

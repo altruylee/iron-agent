@@ -12,7 +12,7 @@
 | Hot | `hot/INDEX.md` |
 | Warm | `warm/INDEX.md` |
 | Cold | `cold/INDEX.md` |
-| Finance | `episodes/finance/INDEX.md` |
+| Workflow | `episodes/workflow/INDEX.md` |
 | Development | `episodes/development/INDEX.md` |
 | User | `episodes/user/INDEX.md` |
 | Semantic SOPs | `semantic/sops/INDEX.md` |

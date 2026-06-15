@@ -85,11 +85,11 @@ LOCAL_ONLY_PATTERNS = [
 ]
 
 TOPICS = {
-    "finance-settlement": {
-        "keywords": ["财务结算", "结算", "对账", "账期", "付款", "收款", "发票", "finance", "settlement"],
+    "task-review": {
+        "keywords": ["任务复盘", "复盘", "沉淀", "整理", "规则", "SOP", "workflow", "review"],
         "paths": [
-            "workspace/memory/episodes/finance/INDEX.md",
-            "workspace/memory/semantic/sops/finance-settlement.md",
+            "workspace/memory/episodes/workflow/task-review/INDEX.md",
+            "workspace/memory/semantic/sops/task-review.md",
         ],
     },
     "user-registration": {

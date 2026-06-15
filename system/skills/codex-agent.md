@@ -113,9 +113,9 @@ python system/scripts/memory_router.py --root . --task "{user task}"
 
 Examples:
 
-- 财务结算 task: load finance episode/SOP only.
+- 任务复盘 task: load task-review episode/SOP only.
 - 用户注册 task: load user-registration episode/SOP only.
-- If the task moves from 财务结算 to 用户注册, stop using finance memory.
+- If the task moves from 任务复盘 to 用户注册, stop using task-review memory.
 
 SOP promotion is async:
 
@@ -129,7 +129,7 @@ SOP promotion is async:
 
 Use domain agents as enforceable task overlays.
 
-- Before code, development, investing, writing, research, operations, or other
+- Before code, development, business, writing, research, operations, or other
   domain-specific tasks, check `packs/domain-agents/INDEX.md`.
 - If an active domain agent matches the task, read its `RUNTIME.md` and `RULES.md`
   before answering or editing files.

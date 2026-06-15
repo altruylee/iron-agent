@@ -8,5 +8,5 @@
 
 | Topic | Path |
 |---|---|
-| Finance archive | `../episodes/finance/INDEX.md` |
+| Workflow archive | `../episodes/workflow/INDEX.md` |
 | User archive | `../episodes/user/INDEX.md` |

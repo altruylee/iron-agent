@@ -31,7 +31,7 @@ DOMAIN_KEYWORDS = {
         "测试",
         "重构",
     ],
-    "investing": ["invest", "stock", "finance", "market", "portfolio", "股票", "投资", "投研", "财报"],
+    "business": ["business", "customer", "growth", "metrics", "业务", "客户", "增长", "指标"],
     "writing": ["write", "article", "newsletter", "copywriting", "blog", "写作", "文章", "文案"],
     "research": ["research", "paper", "analysis", "source", "citation", "研究", "分析", "资料"],
     "operations": ["ops", "operation", "workflow", "automation", "dashboard", "运营", "自动化", "流程"],

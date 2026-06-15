@@ -3,12 +3,19 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.5](#035)
 - [0.3.4](#034)
 - [0.3.3](#033)
 - [0.3.1](#031)
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.3.5
+
+- Simplified README installation instructions.
+- Removed domain-specific starter memory, examples, and default routing.
+- Replaced the default SOP seed with a generic task-review workflow.
 
 ## 0.3.4
 

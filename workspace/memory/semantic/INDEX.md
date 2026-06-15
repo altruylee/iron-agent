@@ -14,7 +14,7 @@ Semantic memory stores fixed, reusable rules and SOPs. It should stay compact.
 
 | SOP | Path |
 |---|---|
-| Financial settlement | `sops/finance-settlement.md` |
+| Task review | `sops/task-review.md` |
 | User registration | `sops/user-registration.md` |
 
 ## Rules

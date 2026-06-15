@@ -34,53 +34,34 @@ Iron Agent optimizes for low-token, precise execution:
 
 ## Install
 
-CLI:
+Copy Iron Agent into a workspace:
 
-```bash
-python -m pip install -e .
-iron --version
-```
-
-Python:
-
-```bash
+```powershell
 python install.py --target {target-folder}
 ```
 
-PowerShell:
+Or with PowerShell:
 
 ```powershell
 .\install.ps1 -Target {target-folder}
 ```
 
-Portable dry run:
-
-```bash
-python install.py --target {target-folder} --portable --dry-run
-```
-
-The installer copies files only. It does not create Windows scheduled tasks or
-Codex automations. Those are offered later during initial setup.
-
-## After Install
-
-Install does not mark onboarding complete. `install_status` stays `0` until the
-first AI session collects your stable preferences and writes them into the
-workspace.
-
-For Codex, after copying the pack, start a new Codex thread with the installed
-folder selected and paste this exact prompt:
+Then open `{target-folder}` in Codex and paste:
 
 ```text
 初始化 Iron Agent。请先读取 AGENTS.md；如果 install_status 是 0，请执行 system/skills/initial-install.md，分批询问我的稳定偏好、常用路径、工作类型、权限边界和自动化需求。完成写入后再把 install_status 改成 1。
 ```
 
-Read `OPEN_ME_FIRST.md` if the tool does not prompt automatically.
+The installer only copies files. `install_status` stays `0` until onboarding is
+completed by the first AI session.
 
-If you install Iron Agent from inside an existing Codex conversation into a new
-folder, Codex cannot silently move the current thread to that new folder. Start a
-new Codex thread with the installed folder selected, or install into the folder
-that is already open.
+## After Install
+
+If you install into a new folder from an existing Codex thread, start a new Codex
+thread with that folder selected. Codex cannot silently switch the current
+thread to a newly created workspace.
+
+Read `OPEN_ME_FIRST.md` if the tool does not prompt automatically.
 
 ## Quickstart
 

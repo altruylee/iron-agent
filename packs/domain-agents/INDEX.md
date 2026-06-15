@@ -15,7 +15,7 @@ personal, field-specific workflows here instead of bloating the core pack.
 
 Examples:
 
-- investing agents,
+- business agents,
 - coding agents,
 - writing agents,
 - research agents,

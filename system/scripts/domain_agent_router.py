@@ -9,7 +9,7 @@ from pathlib import Path
 
 DOMAIN_KEYWORDS = {
     "development": ["code", "repo", "bug", "test", "refactor", "开发", "代码", "编程", "仓库", "测试", "重构"],
-    "investing": ["stock", "finance", "market", "投资", "股票", "投研", "财报"],
+    "business": ["business", "customer", "growth", "metrics", "业务", "客户", "增长", "指标"],
     "writing": ["write", "draft", "article", "写作", "文章", "文案"],
     "research": ["research", "source", "paper", "研究", "资料", "分析"],
     "operations": ["workflow", "automation", "ops", "流程", "自动化", "运营"],

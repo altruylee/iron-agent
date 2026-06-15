@@ -20,8 +20,8 @@ def has_sop_signal(text: str) -> bool:
 
 def detect_target(text: str) -> str | None:
     lowered = text.lower()
-    if any(word in lowered for word in ["财务结算", "结算", "对账", "finance", "settlement"]):
-        return "finance-settlement.md"
+    if any(word in lowered for word in ["任务复盘", "复盘", "workflow", "review", "sop"]):
+        return "task-review.md"
     if any(word in lowered for word in ["用户注册", "注册", "registration", "onboarding"]):
         return "user-registration.md"
     return None
