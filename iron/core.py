@@ -226,10 +226,10 @@ def read_install_status(root: Path) -> int | None:
     return int(match.group(1)) if match else None
 
 
-def init_workspace(target: Path, source: Path | None = None, overwrite: bool = False, reset: bool = False) -> dict[str, Any]:
+def init_workspace(target: Path, source: Path | None = None, overwrite: bool = False, complete: bool = False) -> dict[str, Any]:
     source_root = source or PACK_ROOT
     copy_pack(source_root, target, overwrite=overwrite)
-    patch_install_status(target, 0 if reset else 1)
+    patch_install_status(target, 1 if complete else 0)
     return {"target": str(target), "source": str(source_root), "install_status": read_install_status(target)}
 
 
@@ -783,11 +783,7 @@ def doctor_checks(root: Path, fix: bool = False) -> list[CheckResult]:
     if status == 1:
         results.append(CheckResult("install-status", "OK", "install_status is 1"))
     elif status == 0:
-        if fix:
-            patch_install_status(root, 1)
-            results.append(CheckResult("install-status", "OK", "install_status changed from 0 to 1"))
-        else:
-            results.append(CheckResult("install-status", "WARN", "install_status is 0", "iron doctor . --fix"))
+        results.append(CheckResult("install-status", "WARN", "install_status is 0; first-use onboarding is pending", "Open this folder in Codex and follow AGENTS.md"))
     else:
         results.append(CheckResult("install-status", "FAIL", "install_status not found", "Check AGENTS.md Installation State"))
 

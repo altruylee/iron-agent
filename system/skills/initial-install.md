@@ -21,12 +21,18 @@ Before normal work:
 
 1. Read `AGENTS.md`.
 2. If `install_status` is `1`, stop this skill and continue the requested task.
-3. If `install_status` is `0`, ask the questionnaire below.
+3. If `install_status` is `0`, tell the user this is the first-use setup and
+   ask the questionnaire below.
 4. Use answers to update the write targets.
 5. Mark installation complete in `AGENTS.md`.
 
 Do not ask all questions if the user already gave the answer in the prompt.
 Ask concise batches of 3-5 questions.
+
+Never mark installation complete just because files were copied, `iron init`
+ran, `iron doctor --fix` ran, or `iron quickstart` ran. Completion means the
+profile and permission preferences were actually collected or the user
+explicitly skipped onboarding.
 
 ## Questionnaire
 

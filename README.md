@@ -5,6 +5,7 @@
 - [What It Is](#what-it-is)
 - [Design Principle](#design-principle)
 - [Install](#install)
+- [After Install](#after-install)
 - [Quickstart](#quickstart)
 - [CLI](#cli)
 - [Use With Codex](#use-with-codex)
@@ -61,6 +62,26 @@ python install.py --target {target-folder} --portable --dry-run
 The installer copies files only. It does not create Windows scheduled tasks or
 Codex automations. Those are offered later during initial setup.
 
+## After Install
+
+Install does not mark onboarding complete. `install_status` stays `0` until the
+first AI session collects your stable preferences and writes them into the
+workspace.
+
+For Codex, after copying the pack, start a new Codex thread with the installed
+folder selected and paste this exact prompt:
+
+```text
+初始化 Iron Agent。请先读取 AGENTS.md；如果 install_status 是 0，请执行 system/skills/initial-install.md，分批询问我的稳定偏好、常用路径、工作类型、权限边界和自动化需求。完成写入后再把 install_status 改成 1。
+```
+
+Read `OPEN_ME_FIRST.md` if the tool does not prompt automatically.
+
+If you install Iron Agent from inside an existing Codex conversation into a new
+folder, Codex cannot silently move the current thread to that new folder. Start a
+new Codex thread with the installed folder selected, or install into the folder
+that is already open.
+
 ## Quickstart
 
 Run the 5 minute path in `QUICKSTART.md`:
@@ -77,7 +98,7 @@ The full sample is in `examples/end-to-end-demo/`.
 
 | Command | Purpose |
 |---|---|
-| `iron init <target>` | Install a workspace and update `install_status` |
+| `iron init <target>` | Copy a workspace and keep `install_status` at `0` for onboarding |
 | `iron check <root>` | Validate manifest and release safety |
 | `iron doctor <root> --fix` | Diagnose and repair reversible setup issues |
 | `iron report <root>` | Generate an evolution report |
@@ -94,9 +115,11 @@ The full sample is in `examples/end-to-end-demo/`.
 
 ## Use With Codex
 
-Open the installed folder with Codex and read `AGENTS.md`. If
-`install_status` is `0`, run the initial install flow in
-`system/skills/initial-install.md`.
+Open the installed folder with Codex and paste:
+
+```text
+初始化 Iron Agent。请先读取 AGENTS.md；如果 install_status 是 0，请执行 system/skills/initial-install.md，分批询问我的稳定偏好、常用路径、工作类型、权限边界和自动化需求。完成写入后再把 install_status 改成 1。
+```
 
 ## Use With Editors
 

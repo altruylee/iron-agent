@@ -31,7 +31,6 @@ from .core import (
     move_memory_to_wiki,
     move_wiki_to_memory,
     new_domain_agent,
-    patch_install_status,
     preview_template,
     read_config,
     read_install_status,
@@ -102,7 +101,8 @@ def init(
     target: Path = typer.Argument(..., help="Target folder for the workspace."),
     source: Optional[Path] = typer.Option(None, "--source", help="Source Iron Agent pack root."),
     overwrite: bool = typer.Option(False, "--overwrite", help="Replace target if it already contains files."),
-    reset: bool = typer.Option(False, "--reset", help="Install but leave install_status at 0."),
+    reset: bool = typer.Option(False, "--reset", help="Compatibility option; installs now keep install_status at 0 by default."),
+    complete: bool = typer.Option(False, "--complete", help="Advanced: mark install_status as 1 immediately."),
     status: bool = typer.Option(False, "--status", help="Only show install_status for target."),
     template: Optional[str] = typer.Option(None, "--template", help="Apply starter pack template."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
@@ -113,12 +113,17 @@ def init(
         emit({"target": str(root), "install_status": read_install_status(root)}, json_output)
         return
     try:
-        result = init_workspace(root, source=source.resolve() if source else PACK_ROOT, overwrite=overwrite, reset=reset)
+        result = init_workspace(root, source=source.resolve() if source else PACK_ROOT, overwrite=overwrite, complete=complete and not reset)
         if template:
             result["template"] = apply_template(root, template)
     except Exception as exc:
         fail(str(exc), json_output)
-    emit(result if json_output else f"Iron Agent installed to {root}", json_output)
+    if json_output:
+        emit(result, True)
+    else:
+        typer.echo(f"Iron Agent copied to {root}")
+        typer.echo("install_status remains 0. Open this folder in Codex and say: 初始化 Iron Agent")
+        typer.echo(f"Start file: {root / 'OPEN_ME_FIRST.md'}")
 
 
 @app.command()
@@ -255,8 +260,6 @@ def quickstart(
 ) -> None:
     """Run the shortest local quickstart verification."""
     root_path = resolve_root(root)
-    if read_install_status(root_path) == 0:
-        patch_install_status(root_path, 1)
     report_path = generate_report(root_path)
     result = {
         "ok": True,

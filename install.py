@@ -104,7 +104,10 @@ def main() -> int:
         return 0
     copy_pack(src, target, args.overwrite)
     print(f"Iron Agent Pack installed to: {target}")
-    print(f"Next: open {target / 'AGENTS.md'} with Codex and run initial install.")
+    print("install_status remains 0 until the first AI onboarding is complete.")
+    print(f"Next: open this folder in Codex/Claude/Cursor/VS Code: {target}")
+    print("Then say: 初始化 Iron Agent")
+    print(f"Start file: {target / 'OPEN_ME_FIRST.md'}")
     if args.portable or args.skip_scheduler or args.skip_codex_automation:
         print("Portable mode: external schedulers and Codex automations were not created.")
     return 0

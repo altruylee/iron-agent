@@ -3,11 +3,18 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.4](#034)
 - [0.3.3](#033)
 - [0.3.1](#031)
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.3.4
+
+- Fixed install flow so file copy keeps `install_status: 0` until first-use onboarding is completed.
+- Stopped `iron doctor --fix` and `iron quickstart` from silently marking installation complete.
+- Added `OPEN_ME_FIRST.md` and clearer post-install guidance for Codex workspace selection.
 
 ## 0.3.3
 
