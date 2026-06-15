@@ -9,9 +9,11 @@ include manifest.json
 include install.py
 include install.ps1
 include .clinerules
+recursive-include .claude *
 recursive-include .cursor *
 recursive-include .github *
 recursive-include .roo *
+recursive-include .vscode *
 recursive-include codex-global-skill *
 recursive-include adapters *
 recursive-include config *

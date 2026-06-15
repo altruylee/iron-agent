@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Iron Agent: Daily Maintenance",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "system/scripts/daily_maintenance.py",
+        "--root",
+        "."
+      ],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "Iron Agent: Check",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "-m",
+        "iron",
+        "check",
+        "."
+      ],
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

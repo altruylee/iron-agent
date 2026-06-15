@@ -15,6 +15,7 @@ from .core import (
     PACK_ROOT,
     apply_candidate,
     apply_template,
+    automation_status,
     check_workspace,
     clean_workspace,
     create_backup,
@@ -24,6 +25,7 @@ from .core import (
     generate_report,
     init_workspace,
     install_editor_adapters,
+    install_automation,
     list_editor_adapters,
     list_templates,
     move_memory_to_wiki,
@@ -49,6 +51,7 @@ template_app = typer.Typer(help="List, preview, and apply starter packs.", no_ar
 agent_app = typer.Typer(help="Create domain agents.", no_args_is_help=True)
 wiki_app = typer.Typer(help="Move wiki entries.", no_args_is_help=True)
 editor_app = typer.Typer(help="Install editor and coding-agent adapters.", no_args_is_help=True)
+automation_app = typer.Typer(help="Install silent background maintenance.", no_args_is_help=True)
 app.add_typer(memory_app, name="memory")
 app.add_typer(task_app, name="task")
 app.add_typer(config_app, name="config")
@@ -56,6 +59,7 @@ app.add_typer(template_app, name="template")
 app.add_typer(agent_app, name="agent")
 app.add_typer(wiki_app, name="wiki")
 app.add_typer(editor_app, name="editor")
+app.add_typer(automation_app, name="automation")
 
 
 def emit(data: object, json_output: bool) -> None:
@@ -538,4 +542,47 @@ def editor_doctor(
             for target in item["targets"]:
                 typer.echo(f"  {target['path']}: {target['exists']}")
     if not ok:
+        raise typer.Exit(1)
+
+
+@automation_app.command("install")
+def automation_install(
+    root: Path = typer.Argument(Path("."), help="Iron Agent root."),
+    tool: str = typer.Option("all", "--tool", help="claude, cursor, vscode, cline, roo, or all."),
+    time: str = typer.Option("23:30", "--time", help="Daily maintenance time, HH:MM."),
+    apply: bool = typer.Option(False, "--apply", help="Create the OS scheduled task."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Install silent editor adapters and daily background maintenance."""
+    try:
+        result = install_automation(resolve_root(root), tool=tool, time=time, apply=apply)
+    except Exception as exc:
+        fail(str(exc), json_output)
+    if json_output:
+        emit(result, True)
+    else:
+        typer.echo(f"Adapters installed: {len(result['adapters'])}")
+        typer.echo(f"Daily maintenance: {result['task_name']} at {result['time']}")
+        typer.echo(f"State: {result['state']}")
+        if result.get("note"):
+            typer.echo(result["note"])
+        if not result.get("ok", False):
+            raise typer.Exit(1)
+
+
+@automation_app.command("status")
+def automation_doctor(
+    root: Path = typer.Argument(Path("."), help="Iron Agent root."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Show silent automation setup status."""
+    result = automation_status(resolve_root(root))
+    if json_output:
+        emit(result, True)
+    else:
+        typer.echo(f"state: {result['state_path']}")
+        typer.echo(f"ok: {result['ok']}")
+        for item in result["adapters"]:
+            typer.echo(f"{item['tool']}: {'OK' if item['ok'] else 'MISSING'}")
+    if not result["ok"]:
         raise typer.Exit(1)

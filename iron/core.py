@@ -6,6 +6,7 @@ import json
 import platform
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
 from dataclasses import dataclass
@@ -48,9 +49,18 @@ EVOLUTION_CONFIG = "config/evolution.yaml"
 MOVE_LOG = "workspace/meta/wiki-memory-moves.jsonl"
 ADAPTER_ROOT = PACK_ROOT / "adapters"
 EDITOR_ADAPTERS = {
-    "claude": [("adapters/claude/CLAUDE.md", "CLAUDE.md")],
-    "cursor": [("adapters/cursor/.cursor/rules/iron-agent.mdc", ".cursor/rules/iron-agent.mdc")],
-    "vscode": [("adapters/vscode/.github/copilot-instructions.md", ".github/copilot-instructions.md")],
+    "claude": [
+        ("adapters/claude/CLAUDE.md", "CLAUDE.md"),
+        ("adapters/claude/.claude/settings.json", ".claude/settings.json"),
+    ],
+    "cursor": [
+        ("adapters/cursor/.cursor/rules/iron-agent.mdc", ".cursor/rules/iron-agent.mdc"),
+        ("adapters/cursor/.cursor/rules/iron-agent-automation.mdc", ".cursor/rules/iron-agent-automation.mdc"),
+    ],
+    "vscode": [
+        ("adapters/vscode/.github/copilot-instructions.md", ".github/copilot-instructions.md"),
+        ("adapters/vscode/.vscode/tasks.json", ".vscode/tasks.json"),
+    ],
     "cline": [("adapters/cline/.clinerules", ".clinerules")],
     "roo": [("adapters/roo/.roo/rules/iron-agent.md", ".roo/rules/iron-agent.md")],
 }
@@ -692,6 +702,73 @@ def editor_adapter_status(root: Path) -> list[dict[str, Any]]:
             targets.append({"path": target_rel, "exists": exists})
         rows.append({"tool": tool, "ok": ok, "targets": targets})
     return rows
+
+
+def automation_task_name(root: Path) -> str:
+    slug = re.sub(r"[^A-Za-z0-9_-]+", "-", root.name).strip("-") or "workspace"
+    return f"IronAgentDailyMaintenance-{slug}"
+
+
+def daily_maintenance_command(root: Path) -> list[str]:
+    script = root / "system" / "scripts" / "daily_maintenance.py"
+    return [sys.executable, str(script), "--root", str(root)]
+
+
+def install_automation(root: Path, tool: str = "all", time: str = "23:30", apply: bool = False) -> dict[str, Any]:
+    ensure_iron_root(root)
+    adapter_result = install_editor_adapters(root, tool=tool, overwrite=True)
+    task_name = automation_task_name(root)
+    command = daily_maintenance_command(root)
+    state_path = root / "workspace" / "meta" / "scheduled-task-state.json"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    result: dict[str, Any] = {
+        "ok": True,
+        "applied": apply,
+        "tool": tool,
+        "adapters": adapter_result["copied"],
+        "task_name": task_name,
+        "time": time,
+        "command": command,
+        "scheduler": "windows-task-scheduler" if platform.system().lower() == "windows" else "external",
+        "state": str(state_path),
+    }
+    if apply and platform.system().lower() == "windows":
+        tr = f'cmd /c cd /d "{root}" && "{command[0]}" "{command[1]}" --root "{root}"'
+        scheduled = subprocess.run(
+            ["schtasks", "/Create", "/F", "/SC", "DAILY", "/ST", time, "/TN", task_name, "/TR", tr],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        result["scheduler_returncode"] = scheduled.returncode
+        result["scheduler_stdout"] = scheduled.stdout.strip()
+        result["scheduler_stderr"] = scheduled.stderr.strip()
+        result["ok"] = scheduled.returncode == 0
+    elif apply:
+        result["ok"] = False
+        result["note"] = "Automatic scheduler install is currently implemented for Windows. Use cron/systemd/launchd with the returned command."
+    else:
+        result["note"] = "Dry run only. Re-run with --apply to create the scheduled task."
+    if apply:
+        state_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    return result
+
+
+def automation_status(root: Path) -> dict[str, Any]:
+    state_path = root / "workspace" / "meta" / "scheduled-task-state.json"
+    adapters = editor_adapter_status(root)
+    state: dict[str, Any] | None = None
+    if state_path.exists():
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            state = {"error": "invalid scheduled-task-state.json"}
+    return {
+        "ok": bool(state_path.exists()) and all(item["ok"] for item in adapters),
+        "state_path": str(state_path),
+        "state": state,
+        "adapters": adapters,
+    }
 
 
 def doctor_checks(root: Path, fix: bool = False) -> list[CheckResult]:

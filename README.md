@@ -10,6 +10,7 @@
 - [Use With Codex](#use-with-codex)
 - [Use With Editors](#use-with-editors)
 - [Daily Use Model](#daily-use-model)
+- [Silent Automation](#silent-automation)
 - [Memory Model](#memory-model)
 - [Automation](#automation)
 - [Release Safety](#release-safety)
@@ -89,6 +90,7 @@ The full sample is in `examples/end-to-end-demo/`.
 | `iron agent new <root> <name>` | Create a domain agent from the template |
 | `iron config set <root> evolution.friction_threshold 5` | Adjust evolution thresholds |
 | `iron editor install <root> --tool all` | Install Claude/Cursor/VS Code/Cline/Roo rules |
+| `iron automation install <root> --tool all --apply` | Install silent adapters and daily maintenance |
 
 ## Use With Codex
 
@@ -117,6 +119,19 @@ Supported adapters:
 
 All adapters use the same rule: run `memory_router.py` first, then read only
 the returned paths.
+
+## Silent Automation
+
+Install once:
+
+```bash
+iron automation install . --tool all --apply
+iron automation status .
+```
+
+After that, daily use should be invisible: the coding agent routes memory before
+answering, and nightly maintenance organizes new prompt/rule/SOP candidates in
+the background. See `docs/silent-automation.md`.
 
 ## Daily Use Model
 

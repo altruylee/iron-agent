@@ -3,10 +3,17 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.3](#033)
 - [0.3.1](#031)
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.3.3
+
+- Added `iron automation install/status` for silent adapter setup and daily background maintenance.
+- Added Claude Code hook, Cursor automation rule, and VS Code task adapter files.
+- Added silent automation documentation for Codex, Claude Code, Cursor, VS Code, Cline, and Roo.
 
 ## 0.3.2
 
