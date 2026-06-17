@@ -58,7 +58,41 @@ def run_python(script: Path, args: list[str]) -> subprocess.CompletedProcess[str
     )
 
 
+def estimate_tokens(text: str) -> int:
+    return max(1, (len(text) + 3) // 4) if text else 0
+
+
+def read_text_tokens(path: Path) -> int:
+    if not path.exists() or not path.is_file():
+        return 0
+    return estimate_tokens(path.read_text(encoding="utf-8", errors="replace"))
+
+
+def token_savings_summary(root: Path) -> dict[str, int]:
+    memory_root = root / "workspace" / "memory"
+    all_memory_tokens = 0
+    if memory_root.exists():
+        for path in memory_root.rglob("*.md"):
+            all_memory_tokens += read_text_tokens(path)
+
+    routing_files = [
+        root / "workspace" / "memory" / "INDEX.md",
+        root / "workspace" / "memory" / "index.json",
+        root / "workspace" / "memory" / "hot" / "INDEX.md",
+    ]
+    routed_tokens = sum(read_text_tokens(path) for path in routing_files)
+    avoided_tokens = max(0, all_memory_tokens - routed_tokens)
+    savings_percent = int(round((avoided_tokens / all_memory_tokens) * 100)) if all_memory_tokens else 0
+    return {
+        "all_memory_tokens": all_memory_tokens,
+        "routing_surface_tokens": routed_tokens,
+        "estimated_avoided_tokens": avoided_tokens,
+        "estimated_savings_percent": savings_percent,
+    }
+
+
 def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
+    savings = token_savings_summary(root)
     report_dir = root / "output" / "maintenance"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"{now.date().isoformat()}-daily-maintenance.md"
@@ -68,11 +102,22 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
         "## Directory",
         "",
         "- [Summary](#summary)",
+        "- [Token Savings](#token-savings)",
         "- [Details](#details)",
         "",
         "## Summary",
         "",
         f"- Run time: `{now.isoformat(timespec='seconds')}`",
+        f"- Estimated avoided tokens: `{savings['estimated_avoided_tokens']}`",
+        f"- Estimated savings: `{savings['estimated_savings_percent']}%`",
+        "",
+        "## Token Savings",
+        "",
+        f"- Full memory read estimate: `{savings['all_memory_tokens']}` tokens",
+        f"- Daily routing surface estimate: `{savings['routing_surface_tokens']}` tokens",
+        f"- Estimated tokens avoided by routing first: `{savings['estimated_avoided_tokens']}` tokens",
+        f"- Estimated reduction: `{savings['estimated_savings_percent']}%`",
+        "- Estimate uses `4 characters ~= 1 token`; actual model tokenization may vary.",
         "",
         "## Details",
         "",
@@ -182,6 +227,15 @@ def main() -> int:
     lines.append(slim_result.stdout.strip() or "Memory index slimming completed")
     if slim_result.stderr.strip():
         lines.append(f"index stderr: {slim_result.stderr.strip()}")
+
+    savings = token_savings_summary(root)
+    lines.append(
+        "Token savings estimate: "
+        f"full memory `{savings['all_memory_tokens']}` tokens, "
+        f"routing surface `{savings['routing_surface_tokens']}` tokens, "
+        f"avoided `{savings['estimated_avoided_tokens']}` tokens "
+        f"({savings['estimated_savings_percent']}%)."
+    )
 
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state = {

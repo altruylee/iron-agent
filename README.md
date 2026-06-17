@@ -2,6 +2,7 @@
 
 ## Directory
 
+- [Why Iron Agent](#why-iron-agent)
 - [What It Is](#what-it-is)
 - [Design Principle](#design-principle)
 - [Install](#install)
@@ -15,6 +16,20 @@
 - [Memory Model](#memory-model)
 - [Automation](#automation)
 - [Release Safety](#release-safety)
+
+## Why Iron Agent
+
+Most AI tools forget you the moment the chat ends. Iron Agent gives them a
+memory palace: a disciplined local workspace where your preferences, rules,
+SOPs, recurring workflows, and hard-won project context are distilled into a
+small, routable layer.
+
+The result is an assistant that feels sharper every day without dragging a giant
+history into every prompt. It looks up only what matters, applies the right
+personal rules at the right moment, and quietly turns repeated work into reusable
+instructions. Codex, Claude Code, Cursor, VS Code, Cline, and Roo can all stand
+on the same memory layer, so your agent stops being a blank model and starts
+behaving like a long-term working partner.
 
 ## What It Is
 

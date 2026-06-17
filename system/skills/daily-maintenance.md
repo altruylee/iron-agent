@@ -49,6 +49,7 @@ Run daily maintenance when:
 - Preserve generated review files for user inspection.
 - Tell the user what was organized: new prompts, new rules, moved indexes,
   unresolved candidates, and anything requiring approval.
+- Include the token savings estimate from the maintenance report.
 
 ## Process
 
@@ -65,12 +66,16 @@ The script will:
 3. Run memory candidate preparation.
 4. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
 5. Slim indexes and keep top-level routing low-token.
-6. Optionally apply approved global memory candidates if configured.
-7. Write `workspace/meta/maintenance-state.json`.
-8. Write `workspace/meta/codex-automation-trigger.json`.
-9. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
-10. Append a task log entry.
-11. Surface a concise user notice from the maintenance report.
+6. Estimate tokens avoided by routing first instead of reading all memory.
+7. Optionally apply approved global memory candidates if configured.
+8. Write `workspace/meta/maintenance-state.json`.
+9. Write `workspace/meta/codex-automation-trigger.json`.
+10. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
+11. Append a task log entry.
+12. Surface a concise user notice from the maintenance report.
+
+Token estimates use `4 characters ~= 1 token`. Treat them as directional
+maintenance metrics, not billing-grade accounting.
 
 Use `--force` to run outside the idle window:
 
@@ -134,6 +139,7 @@ After running:
 3. Confirm `workspace/meta/memory-candidates.md` exists.
 4. Confirm `workspace/memory/semantic/sops/` stays structured.
 5. Confirm `output/maintenance/` has a report if enabled.
-6. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
-7. Confirm Codex automation is active when available.
-8. Run `system/scripts/health_check.py`.
+6. Confirm the report includes `## Token Savings`.
+7. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
+8. Confirm Codex automation is active when available.
+9. Run `system/scripts/health_check.py`.
