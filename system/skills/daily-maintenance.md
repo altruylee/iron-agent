@@ -71,8 +71,11 @@ The script will:
 8. Write `workspace/meta/maintenance-state.json`.
 9. Write `workspace/meta/codex-automation-trigger.json`.
 10. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
-11. Append a task log entry.
-12. Surface a concise user notice from the maintenance report.
+11. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
+12. Update `output/maintenance/index.html`.
+13. Update `output/maintenance/maintenance-history.json`.
+14. Append a task log entry.
+15. Surface a concise user notice from the maintenance report.
 
 Token estimates use `4 characters ~= 1 token`. Treat them as directional
 maintenance metrics, not billing-grade accounting.
@@ -138,8 +141,9 @@ After running:
 2. Confirm `workspace/meta/codex-automation-trigger.json` was updated.
 3. Confirm `workspace/meta/memory-candidates.md` exists.
 4. Confirm `workspace/memory/semantic/sops/` stays structured.
-5. Confirm `output/maintenance/` has a report if enabled.
-6. Confirm the report includes `## Token Savings`.
-7. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
-8. Confirm Codex automation is active when available.
-9. Run `system/scripts/health_check.py`.
+5. Confirm `output/maintenance/` has Markdown and HTML reports if enabled.
+6. Confirm the Markdown report includes `## Token Savings`.
+7. Confirm `output/maintenance/index.html` opens as the Memory Observatory page.
+8. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
+9. Confirm Codex automation is active when available.
+10. Run `system/scripts/health_check.py`.

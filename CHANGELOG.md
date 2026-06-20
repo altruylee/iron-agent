@@ -3,6 +3,8 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.7](#037)
+- [0.3.6](#036)
 - [0.3.5](#035)
 - [0.3.4](#034)
 - [0.3.3](#033)
@@ -10,6 +12,18 @@
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.3.7
+
+- Removed editor-specific compatibility files.
+- Kept the core adapter surface focused on Codex, Claude Code, and WorkBuddy.
+- Added `WORKBUDDY.md` and the WorkBuddy adapter template.
+
+## 0.3.6
+
+- Added the Memory Observatory static HTML report for daily maintenance.
+- Added `output/maintenance/index.html`, daily HTML reports, and `maintenance-history.json` generation.
+- Added long-term token savings trend data for maintenance reports.
 
 ## 0.3.5
 
@@ -26,8 +40,7 @@
 ## 0.3.3
 
 - Added `iron automation install/status` for silent adapter setup and daily background maintenance.
-- Added Claude Code hook, Cursor automation rule, and VS Code task adapter files.
-- Added silent automation documentation for Codex, Claude Code, Cursor, VS Code, Cline, and Roo.
+- Added Claude Code hook support and silent automation documentation.
 
 ## 0.3.2
 
@@ -37,9 +50,9 @@
 
 ## 0.3.1
 
-- Added installable editor adapters for Claude Code, Cursor, VS Code Copilot, Cline, and Roo Code.
-- Added `iron editor list/install/doctor`.
-- Added adapter documentation and root editor rule files.
+- Added installable agent adapter files.
+- Added adapter list/install/doctor commands.
+- Added adapter documentation and root rule files.
 
 ## 0.3.0
 
@@ -50,7 +63,7 @@
 - Added evolution threshold config and `iron config`.
 - Added wiki/memory boundary documentation and move commands.
 - Added machine-routed memory index, hot/warm/cold memory tiers, and low-token index slimming checks.
-- Added editor adapters for Claude Code, Cursor, VS Code Copilot, Cline, and Roo Code.
+- Added initial agent adapter support.
 - Clarified daily use model: route first, overlay on hit, normal conversation on miss, nightly organization and user notification.
 
 ## 0.2.0

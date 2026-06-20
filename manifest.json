@@ -1,10 +1,11 @@
 {
   "name": "iron-agent-pack",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "description": "A local Codex workspace pack for durable memory, domain knowledge, logs, permissions, and self-maintaining skills.",
   "entrypoints": {
     "workspace": "AGENTS.md",
     "claude": "CLAUDE.md",
+    "workbuddy": "WORKBUDDY.md",
     "codex_global_skill": "codex-global-skill/SKILL.md"
   },
   "stages": {
@@ -16,13 +17,8 @@
   "required": [
     "AGENTS.md",
     "CLAUDE.md",
+    "WORKBUDDY.md",
     ".claude/settings.json",
-    ".cursor/rules/iron-agent.mdc",
-    ".cursor/rules/iron-agent-automation.mdc",
-    ".github/copilot-instructions.md",
-    ".vscode/tasks.json",
-    ".clinerules",
-    ".roo/rules/iron-agent.md",
     "README.md",
     "OPEN_ME_FIRST.md",
     "SECURITY.md",
@@ -41,12 +37,7 @@
     "config/evolution.yaml",
     "adapters/claude/CLAUDE.md",
     "adapters/claude/.claude/settings.json",
-    "adapters/cursor/.cursor/rules/iron-agent.mdc",
-    "adapters/cursor/.cursor/rules/iron-agent-automation.mdc",
-    "adapters/vscode/.github/copilot-instructions.md",
-    "adapters/vscode/.vscode/tasks.json",
-    "adapters/cline/.clinerules",
-    "adapters/roo/.roo/rules/iron-agent.md",
+    "adapters/workbuddy/WORKBUDDY.md",
     "iron/__init__.py",
     "iron/__main__.py",
     "iron/cli.py",

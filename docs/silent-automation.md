@@ -9,8 +9,8 @@
 
 ## Goal
 
-Iron Agent should feel invisible in daily use. The user opens a coding agent or
-editor and asks normally. Iron Agent handles memory routing, prompt/rule/SOP
+Iron Agent should feel invisible in daily use. The user opens a coding agent and
+asks normally. Iron Agent handles memory routing, prompt/rule/SOP
 overlays, and nightly organization without requiring the user to remember
 commands.
 
@@ -55,11 +55,8 @@ iron automation status . --json
 |---|---|---|
 | Codex | `AGENTS.md` protocol and Codex automation | Codex automation or OS scheduler |
 | Claude Code | `CLAUDE.md` plus `.claude/settings.json` hooks | Hook and OS scheduler |
-| Cursor | Always-on project rules | OS scheduler |
-| VS Code Copilot | Copilot instructions plus VS Code tasks | OS scheduler |
-| Cline/Roo | Project rule files | OS scheduler |
+| WorkBuddy | `WORKBUDDY.md` protocol | OS scheduler |
 
-Cursor and VS Code do not provide the same strong prompt-submit hook surface as
-Claude Code. Iron Agent therefore makes their daily behavior invisible through
-always-on rules, and makes maintenance invisible through the operating system
-scheduler.
+Editor-specific compatibility files are intentionally out of scope. Iron Agent
+keeps the core surface small: Codex, Claude Code, WorkBuddy, and the operating
+system scheduler for nightly maintenance.

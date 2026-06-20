@@ -1,4 +1,4 @@
-# Editor Adapters
+# Agent Adapters
 
 ## Directory
 
@@ -9,7 +9,8 @@
 
 ## Purpose
 
-Iron Agent can be used by coding agents and AI-enabled editors that read project instruction files and can run local commands.
+Iron Agent focuses on core coding-agent surfaces. It does not ship editor-specific
+compatibility files.
 
 ## Supported Tools
 
@@ -17,31 +18,27 @@ Iron Agent can be used by coding agents and AI-enabled editors that read project
 |---|---|---|
 | Codex | `AGENTS.md` | First-class |
 | Claude Code | `CLAUDE.md` | Supported |
-| Cursor | `.cursor/rules/iron-agent.mdc` | Supported |
-| VS Code Copilot | `.github/copilot-instructions.md` | Supported |
-| Cline | `.clinerules` | Supported |
-| Roo Code | `.roo/rules/iron-agent.md` | Supported |
+| WorkBuddy | `WORKBUDDY.md` | Supported |
 
 ## Install
 
 Install all adapter files into a workspace:
 
 ```bash
-iron editor install . --tool all
+iron adapter install . --tool all
 ```
 
 Install one adapter:
 
 ```bash
-iron editor install . --tool cursor
-iron editor install . --tool vscode
-iron editor install . --tool claude
+iron adapter install . --tool claude
+iron adapter install . --tool workbuddy
 ```
 
 Check adapter status:
 
 ```bash
-iron editor doctor . --json
+iron adapter doctor . --json
 ```
 
 ## Behavior

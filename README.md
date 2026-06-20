@@ -10,7 +10,7 @@
 - [Quickstart](#quickstart)
 - [CLI](#cli)
 - [Use With Codex](#use-with-codex)
-- [Use With Editors](#use-with-editors)
+- [Use With Agents](#use-with-agents)
 - [Daily Use Model](#daily-use-model)
 - [Silent Automation](#silent-automation)
 - [Memory Model](#memory-model)
@@ -27,8 +27,8 @@ small, routable layer.
 The result is an assistant that feels sharper every day without dragging a giant
 history into every prompt. It looks up only what matters, applies the right
 personal rules at the right moment, and quietly turns repeated work into reusable
-instructions. Codex, Claude Code, Cursor, VS Code, Cline, and Roo can all stand
-on the same memory layer, so your agent stops being a blank model and starts
+instructions. Codex, Claude Code, and WorkBuddy can all stand on the same
+memory layer, so your agent stops being a blank model and starts
 behaving like a long-term working partner.
 
 ## What It Is
@@ -106,7 +106,7 @@ The full sample is in `examples/end-to-end-demo/`.
 | `iron template list` | List starter packs |
 | `iron agent new <root> <name>` | Create a domain agent from the template |
 | `iron config set <root> evolution.friction_threshold 5` | Adjust evolution thresholds |
-| `iron editor install <root> --tool all` | Install Claude/Cursor/VS Code/Cline/Roo rules |
+| `iron adapter install <root> --tool all` | Install Claude/WorkBuddy adapter files |
 | `iron automation install <root> --tool all --apply` | Install silent adapters and daily maintenance |
 
 ## Use With Codex
@@ -117,13 +117,53 @@ Open the installed folder with Codex and paste:
 初始化 Iron Agent。请先读取 AGENTS.md；如果 install_status 是 0，请执行 system/skills/initial-install.md，分批询问我的稳定偏好、常用路径、工作类型、权限边界和自动化需求。完成写入后再把 install_status 改成 1。
 ```
 
-## Use With Editors
+## Use With Agents
 
-Install adapter instruction files into the workspace:
+Codex uses `AGENTS.md` directly. Claude Code and WorkBuddy use their own adapter
+files.
+
+### Claude Code
+
+Fresh install already includes Claude Code files:
+
+```text
+CLAUDE.md
+.claude/settings.json
+```
+
+Open `{target-folder}` in Claude Code. Claude should read `CLAUDE.md`, route
+memory first, and use the same Iron Agent workspace.
+
+For an existing workspace, install only the Claude adapter:
 
 ```bash
-iron editor install . --tool all
-iron editor doctor . --json
+iron adapter install . --tool claude
+```
+
+### WorkBuddy
+
+Fresh install already includes:
+
+```text
+WORKBUDDY.md
+```
+
+Open `{target-folder}` in WorkBuddy. WorkBuddy should read `WORKBUDDY.md`, route
+memory first, and use the same Iron Agent workspace.
+
+For an existing workspace, install only the WorkBuddy adapter:
+
+```bash
+iron adapter install . --tool workbuddy
+```
+
+### All Adapters
+
+Install or refresh all adapter instruction files:
+
+```bash
+iron adapter install . --tool all
+iron adapter doctor . --json
 ```
 
 Supported adapters:
@@ -131,10 +171,7 @@ Supported adapters:
 | Tool | File |
 |---|---|
 | Claude Code | `CLAUDE.md` |
-| Cursor | `.cursor/rules/iron-agent.mdc` |
-| VS Code Copilot | `.github/copilot-instructions.md` |
-| Cline | `.clinerules` |
-| Roo Code | `.roo/rules/iron-agent.md` |
+| WorkBuddy | `WORKBUDDY.md` |
 
 All adapters use the same rule: run `memory_router.py` first, then read only
 the returned paths.

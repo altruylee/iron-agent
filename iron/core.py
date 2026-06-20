@@ -53,16 +53,7 @@ EDITOR_ADAPTERS = {
         ("adapters/claude/CLAUDE.md", "CLAUDE.md"),
         ("adapters/claude/.claude/settings.json", ".claude/settings.json"),
     ],
-    "cursor": [
-        ("adapters/cursor/.cursor/rules/iron-agent.mdc", ".cursor/rules/iron-agent.mdc"),
-        ("adapters/cursor/.cursor/rules/iron-agent-automation.mdc", ".cursor/rules/iron-agent-automation.mdc"),
-    ],
-    "vscode": [
-        ("adapters/vscode/.github/copilot-instructions.md", ".github/copilot-instructions.md"),
-        ("adapters/vscode/.vscode/tasks.json", ".vscode/tasks.json"),
-    ],
-    "cline": [("adapters/cline/.clinerules", ".clinerules")],
-    "roo": [("adapters/roo/.roo/rules/iron-agent.md", ".roo/rules/iron-agent.md")],
+    "workbuddy": [("adapters/workbuddy/WORKBUDDY.md", "WORKBUDDY.md")],
 }
 
 EXCLUDE_DIRS = {".git", "__pycache__", ".pytest_cache", "iron.egg-info"}
@@ -669,16 +660,16 @@ def read_move_log(root: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def list_editor_adapters() -> list[dict[str, Any]]:
+def list_agent_adapters() -> list[dict[str, Any]]:
     return [{"tool": tool, "targets": [target for _source, target in files]} for tool, files in EDITOR_ADAPTERS.items()]
 
 
-def install_editor_adapters(root: Path, tool: str = "all", overwrite: bool = True) -> dict[str, Any]:
+def install_agent_adapters(root: Path, tool: str = "all", overwrite: bool = True) -> dict[str, Any]:
     tools = list(EDITOR_ADAPTERS) if tool == "all" else [tool]
     copied: list[str] = []
     for item in tools:
         if item not in EDITOR_ADAPTERS:
-            raise ValueError(f"Unknown editor adapter: {item}")
+            raise ValueError(f"Unknown agent adapter: {item}")
         for source_rel, target_rel in EDITOR_ADAPTERS[item]:
             source = PACK_ROOT / source_rel
             target = root / rel_path(target_rel)
@@ -690,7 +681,7 @@ def install_editor_adapters(root: Path, tool: str = "all", overwrite: bool = Tru
     return {"tool": tool, "copied": copied}
 
 
-def editor_adapter_status(root: Path) -> list[dict[str, Any]]:
+def agent_adapter_status(root: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for tool, files in EDITOR_ADAPTERS.items():
         targets = []
@@ -716,7 +707,7 @@ def daily_maintenance_command(root: Path) -> list[str]:
 
 def install_automation(root: Path, tool: str = "all", time: str = "23:30", apply: bool = False) -> dict[str, Any]:
     ensure_iron_root(root)
-    adapter_result = install_editor_adapters(root, tool=tool, overwrite=True)
+    adapter_result = install_agent_adapters(root, tool=tool, overwrite=True)
     task_name = automation_task_name(root)
     command = daily_maintenance_command(root)
     state_path = root / "workspace" / "meta" / "scheduled-task-state.json"
@@ -756,7 +747,7 @@ def install_automation(root: Path, tool: str = "all", time: str = "23:30", apply
 
 def automation_status(root: Path) -> dict[str, Any]:
     state_path = root / "workspace" / "meta" / "scheduled-task-state.json"
-    adapters = editor_adapter_status(root)
+    adapters = agent_adapter_status(root)
     state: dict[str, Any] | None = None
     if state_path.exists():
         try:

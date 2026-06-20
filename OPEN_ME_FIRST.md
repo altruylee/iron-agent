@@ -5,7 +5,7 @@
 - [What Happened](#what-happened)
 - [Codex](#codex)
 - [Claude Code](#claude-code)
-- [Cursor and VS Code](#cursor-and-vs-code)
+- [WorkBuddy](#workbuddy)
 
 ## What Happened
 
@@ -44,11 +44,10 @@ already opened.
 Open this folder in Claude Code. The included `CLAUDE.md` and `.claude/` files
 tell Claude Code to use Iron Agent routing and maintenance.
 
-## Cursor and VS Code
+## WorkBuddy
 
-Open this folder in Cursor or VS Code. The included project rules and tasks tell
-the assistant to route memory internally. For invisible nightly maintenance, run
-once:
+Open this folder in WorkBuddy. The included `WORKBUDDY.md` file tells WorkBuddy
+to route memory internally. For invisible nightly maintenance, run once:
 
 ```bash
 iron automation install . --tool all --apply

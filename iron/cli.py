@@ -21,12 +21,12 @@ from .core import (
     create_backup,
     doctor_checks,
     evolution_candidates,
-    editor_adapter_status,
+    agent_adapter_status,
     generate_report,
     init_workspace,
-    install_editor_adapters,
+    install_agent_adapters,
     install_automation,
-    list_editor_adapters,
+    list_agent_adapters,
     list_templates,
     move_memory_to_wiki,
     move_wiki_to_memory,
@@ -49,7 +49,7 @@ config_app = typer.Typer(help="Manage Iron Agent config.", no_args_is_help=True)
 template_app = typer.Typer(help="List, preview, and apply starter packs.", no_args_is_help=True)
 agent_app = typer.Typer(help="Create domain agents.", no_args_is_help=True)
 wiki_app = typer.Typer(help="Move wiki entries.", no_args_is_help=True)
-editor_app = typer.Typer(help="Install editor and coding-agent adapters.", no_args_is_help=True)
+adapter_app = typer.Typer(help="Install coding-agent adapters.", no_args_is_help=True)
 automation_app = typer.Typer(help="Install silent background maintenance.", no_args_is_help=True)
 app.add_typer(memory_app, name="memory")
 app.add_typer(task_app, name="task")
@@ -57,7 +57,7 @@ app.add_typer(config_app, name="config")
 app.add_typer(template_app, name="template")
 app.add_typer(agent_app, name="agent")
 app.add_typer(wiki_app, name="wiki")
-app.add_typer(editor_app, name="editor")
+app.add_typer(adapter_app, name="adapter")
 app.add_typer(automation_app, name="automation")
 
 
@@ -503,10 +503,10 @@ def wiki_move_to_memory(
     emit(result, json_output)
 
 
-@editor_app.command("list")
-def editor_list(json_output: bool = typer.Option(False, "--json", help="Emit JSON output.")) -> None:
-    """List supported editor adapters."""
-    adapters = list_editor_adapters()
+@adapter_app.command("list")
+def adapter_list(json_output: bool = typer.Option(False, "--json", help="Emit JSON output.")) -> None:
+    """List supported agent adapters."""
+    adapters = list_agent_adapters()
     if json_output:
         emit({"adapters": adapters}, True)
     else:
@@ -514,28 +514,28 @@ def editor_list(json_output: bool = typer.Option(False, "--json", help="Emit JSO
             typer.echo(f"{item['tool']}: {', '.join(item['targets'])}")
 
 
-@editor_app.command("install")
-def editor_install(
+@adapter_app.command("install")
+def adapter_install(
     root: Path = typer.Argument(Path("."), help="Iron Agent root."),
-    tool: str = typer.Option("all", "--tool", help="claude, cursor, vscode, cline, roo, or all."),
+    tool: str = typer.Option("all", "--tool", help="claude, workbuddy, or all."),
     no_overwrite: bool = typer.Option(False, "--no-overwrite", help="Do not replace existing adapter files."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
 ) -> None:
-    """Install adapter instruction files into a workspace."""
+    """Install agent adapter instruction files into a workspace."""
     try:
-        result = install_editor_adapters(resolve_root(root), tool=tool, overwrite=not no_overwrite)
+        result = install_agent_adapters(resolve_root(root), tool=tool, overwrite=not no_overwrite)
     except Exception as exc:
         fail(str(exc), json_output)
     emit(result, json_output)
 
 
-@editor_app.command("doctor")
-def editor_doctor(
+@adapter_app.command("doctor")
+def adapter_doctor(
     root: Path = typer.Argument(Path("."), help="Iron Agent root."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
 ) -> None:
-    """Check editor adapter installation state."""
-    status = editor_adapter_status(resolve_root(root))
+    """Check agent adapter installation state."""
+    status = agent_adapter_status(resolve_root(root))
     ok = all(item["ok"] for item in status)
     if json_output:
         emit({"ok": ok, "adapters": status}, True)
@@ -551,12 +551,12 @@ def editor_doctor(
 @automation_app.command("install")
 def automation_install(
     root: Path = typer.Argument(Path("."), help="Iron Agent root."),
-    tool: str = typer.Option("all", "--tool", help="claude, cursor, vscode, cline, roo, or all."),
+    tool: str = typer.Option("all", "--tool", help="claude, workbuddy, or all."),
     time: str = typer.Option("23:30", "--time", help="Daily maintenance time, HH:MM."),
     apply: bool = typer.Option(False, "--apply", help="Create the OS scheduled task."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
 ) -> None:
-    """Install silent editor adapters and daily background maintenance."""
+    """Install silent agent adapters and daily background maintenance."""
     try:
         result = install_automation(resolve_root(root), tool=tool, time=time, apply=apply)
     except Exception as exc:
