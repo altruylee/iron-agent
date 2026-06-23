@@ -11,6 +11,7 @@ from pathlib import Path
 INCLUDE = [
     "AGENTS.md",
     "CLAUDE.md",
+    "WORKBUDDY.md",
     "workspace",
     "wiki",
     "packs/domain-agents",
@@ -50,4 +51,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

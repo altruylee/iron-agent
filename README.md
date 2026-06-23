@@ -6,6 +6,7 @@
 - [What It Is](#what-it-is)
 - [Design Principle](#design-principle)
 - [Install](#install)
+- [Upgrade Existing Workspace](#upgrade-existing-workspace)
 - [After Install](#after-install)
 - [Quickstart](#quickstart)
 - [CLI](#cli)
@@ -69,6 +70,38 @@ Then open `{target-folder}` in Codex and paste:
 
 The installer only copies files. `install_status` stays `0` until onboarding is
 completed by the first AI session.
+
+## Upgrade Existing Workspace
+
+Use this path when Iron Agent has already been installed and has accumulated
+memory, logs, reports, wiki pages, or domain agents. Do not run a fresh install
+over an active workspace.
+
+From the existing workspace:
+
+```powershell
+python system/scripts/backup_workspace.py --root .
+python system/scripts/update_core.py --root . --source {new-pack-path} --dry-run
+python system/scripts/update_core.py --root . --source {new-pack-path} --apply
+python system/scripts/health_check.py --root .
+python system/scripts/daily_maintenance.py --root . --force
+```
+
+`{new-pack-path}` is the folder that contains the newer Iron Agent release, for
+example the cloned GitHub repo or a freshly downloaded release folder.
+
+The updater preserves durable user state by default:
+
+- `workspace/meta/`
+- `workspace/memory/`
+- `wiki/`
+- `packs/domain-agents/`
+- `watchlists/`
+- `hypotheses/`
+- `inbox/`
+- `output/`
+- `backups/`
+- `tools/packages/`
 
 ## After Install
 

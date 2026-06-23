@@ -50,6 +50,9 @@ Run daily maintenance when:
 - Tell the user what was organized: new prompts, new rules, moved indexes,
   unresolved candidates, and anything requiring approval.
 - Include the token savings estimate from the maintenance report.
+- The final output must return both the long-term report index
+  `output/maintenance/index.html` and the latest daily HTML report
+  `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
 
 ## Process
 
@@ -76,6 +79,7 @@ The script will:
 13. Update `output/maintenance/maintenance-history.json`.
 14. Append a task log entry.
 15. Surface a concise user notice from the maintenance report.
+16. Return `output/maintenance/index.html` and the latest daily HTML report path.
 
 Token estimates use `4 characters ~= 1 token`. Treat them as directional
 maintenance metrics, not billing-grade accounting.

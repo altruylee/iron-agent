@@ -9,6 +9,7 @@ from pathlib import Path
 
 PRESERVE_PREFIXES = [
     "workspace/meta",
+    "workspace/memory",
     "wiki",
     "packs/domain-agents",
     "watchlists",
@@ -58,4 +59,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -508,8 +508,8 @@ def main() -> int:
     report_path = root / "output" / "maintenance" / f"{now.date().isoformat()}-daily-maintenance.md"
     if daily.get("write_report", True):
         daily_html, index_html = write_web_report(root, now, lines, savings)
-        lines.append(f"Web report written: {daily_html.relative_to(root)}")
-        lines.append(f"Web index updated: {index_html.relative_to(root)}")
+        lines.append(f"Latest daily HTML: {daily_html.relative_to(root)}")
+        lines.append(f"Maintenance index: {index_html.relative_to(root)}")
         lines.append(f"Report written: {report_path.relative_to(root)}")
         report_path = write_report(root, now, lines)
 

@@ -16,14 +16,15 @@ preserving user data.
 | Update script | `system/scripts/update_core.py` |
 | Manifest | `manifest.json` |
 | User memory | `workspace/meta/memory.md` |
+| Layered memory | `workspace/memory/` |
 | Domain agents | `packs/domain-agents/` |
 
 ## Policy
 
 - Preserve user data by default.
-- Never overwrite `workspace/meta/memory.md`, `task-log.jsonl`, `wiki/`,
-  `packs/domain-agents/`, `watchlists/`, or `hypotheses/` unless the user
-  explicitly asks.
+- Never overwrite `workspace/meta/`, `workspace/memory/`, `wiki/`,
+  `packs/domain-agents/`, `watchlists/`, `hypotheses/`, `inbox/`, `output/`,
+  `backups/`, or `tools/packages/` unless the user explicitly asks.
 - Run with `--dry-run` first.
 
 ## Process
@@ -40,3 +41,9 @@ Apply after confirmation:
 python system/scripts/update_core.py --root . --source {new-pack-path} --apply
 ```
 
+After updating:
+
+```bash
+python system/scripts/health_check.py --root .
+python system/scripts/daily_maintenance.py --root . --force
+```
