@@ -39,6 +39,7 @@ from .core import (
     route_memory,
     search_memory,
     set_config_value,
+    update_workspace,
 )
 
 
@@ -282,6 +283,39 @@ def backup(
     except Exception as exc:
         fail(str(exc), json_output)
     emit({"archive": str(archive)} if json_output else str(archive), json_output)
+
+
+@app.command()
+def update(
+    root: Path = typer.Argument(Path("."), help="Existing Iron Agent workspace to update."),
+    source: Optional[Path] = typer.Option(None, "--source", help="New Iron Agent pack root. Defaults to this installed CLI package."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview files without changing the workspace."),
+    no_backup: bool = typer.Option(False, "--no-backup", help="Skip automatic backup before applying."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Update an existing workspace while preserving accumulated user data."""
+    try:
+        result = update_workspace(
+            resolve_root(root),
+            source=source.resolve() if source else None,
+            apply=not dry_run,
+            backup=not no_backup,
+        )
+    except Exception as exc:
+        fail(str(exc), json_output)
+    if json_output:
+        emit(result, True)
+        return
+    action = "previewed" if dry_run else "updated"
+    typer.echo(f"Iron Agent workspace {action}: {result['root']}")
+    typer.echo(f"Source: {result['source']}")
+    if result["backup"]:
+        typer.echo(f"Backup: {result['backup']}")
+    typer.echo(f"Core files: {result['updated_count']}")
+    typer.echo(f"Preserved user files: {result['preserved_count']}")
+    if not dry_run:
+        typer.echo("Health check: OK" if result["ok"] else "Health check: FAILED")
+        typer.echo("Next: python system/scripts/daily_maintenance.py --root . --force")
 
 
 @app.command()

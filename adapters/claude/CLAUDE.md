@@ -12,13 +12,16 @@ Use `AGENTS.md` as the canonical workspace contract.
 
 For every task:
 
-1. Check `AGENTS.md` installation state.
-2. Read `workspace/workspace-config.md`.
-3. For accumulated prompts/rules/SOPs, run `python system/scripts/memory_router.py --task "<task>"`.
-4. If paths are returned, read only those paths and apply them as an overlay to
+1. Before executing the user's task, identify all ambiguous or missing
+   requirements, list the questions for user confirmation, and only produce the
+   final result after everything necessary is clear.
+2. Check `AGENTS.md` installation state.
+3. Read `workspace/workspace-config.md`.
+4. For accumulated prompts/rules/SOPs, run `python system/scripts/memory_router.py --task "<task>"`.
+5. If paths are returned, read only those paths and apply them as an overlay to
    the user's request.
-5. If no paths are returned, treat the request as new content and continue normally.
-6. Record useful completed work and candidate prompts/rules in `workspace/meta/task-log.jsonl`.
+6. If no paths are returned, treat the request as new content and continue normally.
+7. Record useful completed work and candidate prompts/rules in `workspace/meta/task-log.jsonl`.
 
 ## Memory
 

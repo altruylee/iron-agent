@@ -69,6 +69,19 @@ EXCLUDE_PREFIXES = {
     "workspace/meta/package-registry.json",
 }
 
+UPDATE_PRESERVE_PREFIXES = [
+    "workspace/meta",
+    "workspace/memory",
+    "wiki",
+    "packs/domain-agents",
+    "watchlists",
+    "hypotheses",
+    "inbox",
+    "output",
+    "backups",
+    "tools/packages",
+]
+
 LOCAL_ONLY_PATTERNS = [
     re.compile(r"\b[A-Za-z]:\\Users\\", re.IGNORECASE),
     re.compile(r"\bD:\\DOC\\", re.IGNORECASE),
@@ -160,6 +173,10 @@ def should_skip_copy(src_root: Path, path: Path) -> bool:
     return any(rel == prefix or rel.startswith(f"{prefix}/") for prefix in EXCLUDE_PREFIXES)
 
 
+def should_preserve_update(rel: str) -> bool:
+    return any(rel == prefix or rel.startswith(f"{prefix}/") for prefix in UPDATE_PRESERVE_PREFIXES)
+
+
 def copy_pack(source: Path, target: Path, overwrite: bool) -> None:
     if target == source or source in target.parents:
         raise ValueError("Target must be outside the source Iron Agent repository.")
@@ -222,6 +239,48 @@ def init_workspace(target: Path, source: Path | None = None, overwrite: bool = F
     copy_pack(source_root, target, overwrite=overwrite)
     patch_install_status(target, 1 if complete else 0)
     return {"target": str(target), "source": str(source_root), "install_status": read_install_status(target)}
+
+
+def update_workspace(root: Path, source: Path | None = None, apply: bool = True, backup: bool = True) -> dict[str, Any]:
+    ensure_iron_root(root)
+    source_root = (source or PACK_ROOT).resolve()
+    if not (source_root / "AGENTS.md").exists() or not (source_root / "manifest.json").exists():
+        raise ValueError(f"Not an Iron Agent source pack: {source_root}")
+    if root == source_root or source_root in root.parents:
+        raise ValueError("Update source must be outside the target workspace.")
+
+    archive = create_backup(root) if apply and backup else None
+    updated: list[str] = []
+    preserved: list[str] = []
+
+    for path in source_root.rglob("*"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(source_root).as_posix()
+        if any(part in EXCLUDE_DIRS for part in path.parts):
+            continue
+        if should_preserve_update(rel):
+            preserved.append(rel)
+            continue
+        updated.append(rel)
+        if apply:
+            target = root / rel_path(rel)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+
+    result = check_workspace(root) if apply else None
+    return {
+        "ok": bool(result["ok"]) if result else True,
+        "applied": apply,
+        "root": str(root),
+        "source": str(source_root),
+        "backup": str(archive) if archive else "",
+        "updated_count": len(updated),
+        "preserved_count": len(preserved),
+        "updated": updated,
+        "preserved": preserved,
+        "check": result,
+    }
 
 
 def merge_tree(source: Path, target: Path, overwrite: bool = True) -> list[str]:
@@ -825,7 +884,7 @@ def create_backup(root: Path, target: Path | None = None) -> Path:
     backup_dir = target or (root / "backups")
     backup_dir.mkdir(parents=True, exist_ok=True)
     archive = backup_dir / f"iron-agent-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.tar.gz"
-    include = ["workspace", "config", "packs"]
+    include = ["AGENTS.md", "CLAUDE.md", "WORKBUDDY.md", "workspace", "config", "packs", "wiki", "watchlists", "hypotheses"]
     with tarfile.open(archive, "w:gz") as tar:
         for rel in include:
             path = root / rel

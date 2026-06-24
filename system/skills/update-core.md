@@ -29,13 +29,25 @@ preserving user data.
 
 ## Process
 
-Preview:
+Preferred one-command update:
+
+```bash
+iron update . --source {new-pack-path}
+```
+
+Preview first:
+
+```bash
+iron update . --source {new-pack-path} --dry-run
+```
+
+Low-level script preview:
 
 ```bash
 python system/scripts/update_core.py --root . --source {new-pack-path} --dry-run
 ```
 
-Apply after confirmation:
+Low-level script apply:
 
 ```bash
 python system/scripts/update_core.py --root . --source {new-pack-path} --apply

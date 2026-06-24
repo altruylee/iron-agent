@@ -80,15 +80,18 @@ over an active workspace.
 From the existing workspace:
 
 ```powershell
-python system/scripts/backup_workspace.py --root .
-python system/scripts/update_core.py --root . --source {new-pack-path} --dry-run
-python system/scripts/update_core.py --root . --source {new-pack-path} --apply
-python system/scripts/health_check.py --root .
+iron update . --source {new-pack-path}
 python system/scripts/daily_maintenance.py --root . --force
 ```
 
 `{new-pack-path}` is the folder that contains the newer Iron Agent release, for
 example the cloned GitHub repo or a freshly downloaded release folder.
+
+Preview first without changing files:
+
+```powershell
+iron update . --source {new-pack-path} --dry-run
+```
 
 The updater preserves durable user state by default:
 
@@ -128,6 +131,7 @@ The full sample is in `examples/end-to-end-demo/`.
 | Command | Purpose |
 |---|---|
 | `iron init <target>` | Copy a workspace and keep `install_status` at `0` for onboarding |
+| `iron update <root> --source <new-pack>` | Update an existing workspace while preserving user data |
 | `iron check <root>` | Validate manifest and release safety |
 | `iron doctor <root> --fix` | Diagnose and repair reversible setup issues |
 | `iron report <root>` | Generate an evolution report |

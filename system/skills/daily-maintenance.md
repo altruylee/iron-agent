@@ -53,6 +53,8 @@ Run daily maintenance when:
 - The final output must return both the long-term report index
   `output/maintenance/index.html` and the latest daily HTML report
   `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
+- Include the safe workspace upgrade command:
+  `iron update . --source <new-pack-path>`.
 
 ## Process
 
@@ -80,6 +82,8 @@ The script will:
 14. Append a task log entry.
 15. Surface a concise user notice from the maintenance report.
 16. Return `output/maintenance/index.html` and the latest daily HTML report path.
+17. Remind the user that existing workspaces can be updated with
+    `iron update . --source <new-pack-path>` without replacing accumulated data.
 
 Token estimates use `4 characters ~= 1 token`. Treat them as directional
 maintenance metrics, not billing-grade accounting.

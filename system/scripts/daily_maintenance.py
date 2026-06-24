@@ -504,6 +504,7 @@ def main() -> int:
 
     trigger_path = write_codex_trigger(root, now, state["last_status"])
     lines.append(f"Codex trigger written: {trigger_path.relative_to(root)}")
+    lines.append("Upgrade tip: run `iron update . --source <new-pack-path>` to update this workspace while preserving accumulated user data.")
 
     report_path = root / "output" / "maintenance" / f"{now.date().isoformat()}-daily-maintenance.md"
     if daily.get("write_report", True):

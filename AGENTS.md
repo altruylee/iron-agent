@@ -21,20 +21,23 @@ feel more personalized to the user.
 
 For every task in this workspace:
 
-1. Check [Installation State](#installation-state).
-2. If `install_status` is `0`, read and execute `system/skills/initial-install.md`
+1. Before executing the user's task, identify all ambiguous or missing
+   requirements, list the questions for user confirmation, and only produce the
+   final result after everything necessary is clear.
+2. Check [Installation State](#installation-state).
+3. If `install_status` is `0`, read and execute `system/skills/initial-install.md`
    before ordinary work.
-3. Read `workspace/workspace-config.md`.
-4. Read `system/skills/codex-agent.md`.
-5. If the user says "continue", "last time", "resume", or similar, read
+4. Read `workspace/workspace-config.md`.
+5. Read `system/skills/codex-agent.md`.
+6. If the user says "continue", "last time", "resume", or similar, read
    `workspace/meta/active-context.md` before doing anything else.
-6. For memory/rules, run `python system/scripts/memory_router.py --task "<task>"`.
+7. For memory/rules, run `python system/scripts/memory_router.py --task "<task>"`.
    If it returns paths, read only those paths and layer the prompts/rules onto
    the user request. If it returns no paths, treat the request as new content
    and continue normally.
-7. Route materials and outputs using `wiki/_schema.md`.
-8. Record finished work in `workspace/meta/task-log.jsonl` when practical.
-9. Update `workspace/meta/active-context.md` when there is useful continuation
+8. Route materials and outputs using `wiki/_schema.md`.
+9. Record finished work in `workspace/meta/task-log.jsonl` when practical.
+10. Update `workspace/meta/active-context.md` when there is useful continuation
    state.
 
 ## First Principle

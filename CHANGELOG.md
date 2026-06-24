@@ -18,6 +18,7 @@
 - Removed editor-specific compatibility files.
 - Kept the core adapter surface focused on Codex, Claude Code, and WorkBuddy.
 - Added `WORKBUDDY.md` and the WorkBuddy adapter template.
+- Added `iron update` for one-command workspace upgrades that preserve accumulated user data.
 
 ## 0.3.6
 
