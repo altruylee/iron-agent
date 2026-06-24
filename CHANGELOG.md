@@ -3,6 +3,7 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.8](#038)
 - [0.3.7](#037)
 - [0.3.6](#036)
 - [0.3.5](#035)
@@ -13,12 +14,17 @@
 - [0.3.0](#030)
 - [0.2.0](#020)
 
+## 0.3.8
+
+- Added `iron update` for one-command workspace upgrades that preserve accumulated user data.
+- Added top-level clarification-before-execution protocol for Codex, Claude Code, and WorkBuddy.
+- Added daily maintenance upgrade reminders and required HTML report links.
+
 ## 0.3.7
 
 - Removed editor-specific compatibility files.
 - Kept the core adapter surface focused on Codex, Claude Code, and WorkBuddy.
 - Added `WORKBUDDY.md` and the WorkBuddy adapter template.
-- Added `iron update` for one-command workspace upgrades that preserve accumulated user data.
 
 ## 0.3.6
 
