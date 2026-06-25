@@ -241,6 +241,42 @@ def init_workspace(target: Path, source: Path | None = None, overwrite: bool = F
     return {"target": str(target), "source": str(source_root), "install_status": read_install_status(target)}
 
 
+def write_agent_refresh_request(root: Path, source_root: Path, updated: list[str]) -> Path:
+    refresh_path = root / "workspace" / "meta" / "agent-refresh-request.md"
+    refresh_path.parent.mkdir(parents=True, exist_ok=True)
+    agent_files = [item for item in ["AGENTS.md", "CLAUDE.md", "WORKBUDDY.md", ".claude/settings.json"] if item in updated]
+    body = [
+        "# Agent Refresh Request",
+        "",
+        "## Directory",
+        "",
+        "- [Summary](#summary)",
+        "- [Instruction](#instruction)",
+        "- [Files](#files)",
+        "",
+        "## Summary",
+        "",
+        f"- Updated at: `{datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds')}`",
+        f"- Source pack: `{source_root.name}`",
+        "- Reason: `iron update` refreshed core agent instruction files.",
+        "",
+        "## Instruction",
+        "",
+        "Current chat agents should reread the workspace entry file before continuing:",
+        "",
+        "```text",
+        "请重新读取本 workspace 的 AGENTS.md；如果你是 Claude Code，请重新读取 CLAUDE.md；如果你是 WorkBuddy，请重新读取 WORKBUDDY.md。之后按新的 Iron Agent 规则继续当前任务。",
+        "```",
+        "",
+        "## Files",
+        "",
+        *(f"- `{item}`" for item in (agent_files or ["AGENTS.md", "CLAUDE.md", "WORKBUDDY.md"])),
+        "",
+    ]
+    refresh_path.write_text("\n".join(body), encoding="utf-8")
+    return refresh_path
+
+
 def update_workspace(root: Path, source: Path | None = None, apply: bool = True, backup: bool = True) -> dict[str, Any]:
     ensure_iron_root(root)
     source_root = (source or PACK_ROOT).resolve()
@@ -268,6 +304,7 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
 
+    refresh_path = write_agent_refresh_request(root, source_root, updated) if apply else None
     result = check_workspace(root) if apply else None
     return {
         "ok": bool(result["ok"]) if result else True,
@@ -275,6 +312,8 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
         "root": str(root),
         "source": str(source_root),
         "backup": str(archive) if archive else "",
+        "agent_refresh_request": str(refresh_path) if refresh_path else "",
+        "agent_refresh_instruction": "请重新读取本 workspace 的 AGENTS.md；如果你是 Claude Code，请重新读取 CLAUDE.md；如果你是 WorkBuddy，请重新读取 WORKBUDDY.md。之后按新的 Iron Agent 规则继续当前任务。" if apply else "",
         "updated_count": len(updated),
         "preserved_count": len(preserved),
         "updated": updated,

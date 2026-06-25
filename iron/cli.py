@@ -315,6 +315,11 @@ def update(
     typer.echo(f"Preserved user files: {result['preserved_count']}")
     if not dry_run:
         typer.echo("Health check: OK" if result["ok"] else "Health check: FAILED")
+        if result["agent_refresh_request"]:
+            typer.echo(f"Agent refresh request: {result['agent_refresh_request']}")
+        if result["agent_refresh_instruction"]:
+            typer.echo("Current chat refresh prompt:")
+            typer.echo(result["agent_refresh_instruction"])
         typer.echo("Next: python system/scripts/daily_maintenance.py --root . --force")
 
 

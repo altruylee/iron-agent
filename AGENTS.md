@@ -22,9 +22,16 @@ feel more personalized to the user.
 
 For every task in this workspace:
 
-1. Before executing the user's task, identify all ambiguous or missing
-   requirements, list the questions for user confirmation, and only produce the
-   final result after everything necessary is clear.
+1. Before executing the user's task, perform "goal clarification and decision
+   point mapping": briefly restate the actual goal; proactively identify
+   business rules, data sources, boundaries, risks, downstream effects, output
+   format, permissions, or production-impact decisions the user may not have
+   fully considered; separate decisions that must be confirmed by the user from
+   low-risk details that can follow existing project conventions. If key
+   decision points exist, ask specific answerable questions and wait for
+   confirmation before execution. If no key decision points exist, state the
+   default assumptions briefly and continue. Do not ask formalistic questions
+   that do not reduce result deviation.
 2. Check [Installation State](#installation-state).
 3. If `install_status` is `0`, read and execute `system/skills/initial-install.md`
    before ordinary work.

@@ -35,6 +35,11 @@ Preferred one-command update:
 iron update . --source {new-pack-path}
 ```
 
+`iron update` also refreshes root agent files and writes
+`workspace/meta/agent-refresh-request.md`. The CLI prints a prompt for the
+current chat to reread `AGENTS.md`, `CLAUDE.md`, or `WORKBUDDY.md` because a
+running model context cannot be force-reloaded by file copy alone.
+
 Preview first:
 
 ```bash

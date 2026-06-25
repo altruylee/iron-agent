@@ -84,6 +84,11 @@ iron update . --source {new-pack-path}
 python system/scripts/daily_maintenance.py --root . --force
 ```
 
+`iron update` refreshes the workspace agent files (`AGENTS.md`, `CLAUDE.md`,
+`WORKBUDDY.md`) and writes `workspace/meta/agent-refresh-request.md`. A running
+chat cannot be force-reloaded by the CLI, so paste or follow the printed refresh
+prompt in the current conversation after updating.
+
 `{new-pack-path}` is the folder that contains the newer Iron Agent release, for
 example the cloned GitHub repo or a freshly downloaded release folder.
 
