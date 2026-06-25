@@ -31,6 +31,7 @@ REQUIRED = [
     "system/skills/initial-install.md",
     "system/skills/codex-agent.md",
     "system/skills/codex-automation.md",
+    "system/skills/daily-conversation-consolidation.md",
     "system/skills/daily-maintenance.md",
     "system/skills/domain-agent-import.md",
     "system/skills/memory-maintenance.md",

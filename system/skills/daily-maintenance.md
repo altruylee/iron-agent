@@ -23,6 +23,7 @@ reports. It keeps high-token organization outside live conversation.
 | Windows scheduler installer | `system/scripts/install_windows_task.ps1` |
 | Codex automation | `system/skills/codex-automation.md` |
 | Codex prompt | `system/prompts/codex-shadow-maintenance.md` |
+| Daily conversation consolidation | `system/skills/daily-conversation-consolidation.md` |
 | Memory workflow | `system/skills/memory-maintenance.md` |
 | Layered memory | `workspace/memory/INDEX.md` |
 | Task log | `workspace/meta/task-log.jsonl` |
@@ -69,20 +70,22 @@ The script will:
 1. Read `config/maintenance.json`.
 2. Check the idle window and last run time.
 3. Run memory candidate preparation.
-4. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
-5. Slim indexes and keep top-level routing low-token.
-6. Estimate tokens avoided by routing first instead of reading all memory.
-7. Optionally apply approved global memory candidates if configured.
-8. Write `workspace/meta/maintenance-state.json`.
-9. Write `workspace/meta/codex-automation-trigger.json`.
-10. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
-11. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
-12. Update `output/maintenance/index.html`.
-13. Update `output/maintenance/maintenance-history.json`.
-14. Append a task log entry.
-15. Surface a concise user notice from the maintenance report.
-16. Return `output/maintenance/index.html` and the latest daily HTML report path.
-17. Remind the user that existing workspaces can be updated with
+4. Generate `output/maintenance/YYYY-MM-DD-conversation-digest.md` from today's
+   workspace traces.
+5. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
+6. Slim indexes and keep top-level routing low-token.
+7. Estimate tokens avoided by routing first instead of reading all memory.
+8. Optionally apply approved global memory candidates if configured.
+9. Write `workspace/meta/maintenance-state.json`.
+10. Write `workspace/meta/codex-automation-trigger.json`.
+11. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
+12. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
+13. Update `output/maintenance/index.html`.
+14. Update `output/maintenance/maintenance-history.json`.
+15. Append a task log entry.
+16. Surface a concise user notice from the maintenance report.
+17. Return `output/maintenance/index.html` and the latest daily HTML report path.
+18. Remind the user that existing workspaces can be updated with
     `iron update . --source <new-pack-path>` without replacing accumulated data.
 
 Token estimates use `4 characters ~= 1 token`. Treat them as directional
@@ -149,9 +152,10 @@ After running:
 2. Confirm `workspace/meta/codex-automation-trigger.json` was updated.
 3. Confirm `workspace/meta/memory-candidates.md` exists.
 4. Confirm `workspace/memory/semantic/sops/` stays structured.
-5. Confirm `output/maintenance/` has Markdown and HTML reports if enabled.
-6. Confirm the Markdown report includes `## Token Savings`.
-7. Confirm `output/maintenance/index.html` opens as the Memory Observatory page.
-8. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
-9. Confirm Codex automation is active when available.
-10. Run `system/scripts/health_check.py`.
+5. Confirm `output/maintenance/YYYY-MM-DD-conversation-digest.md` exists.
+6. Confirm `output/maintenance/` has Markdown and HTML reports if enabled.
+7. Confirm the Markdown report includes `## Token Savings`.
+8. Confirm `output/maintenance/index.html` opens as the Memory Observatory page.
+9. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
+10. Confirm Codex automation is active when available.
+11. Run `system/scripts/health_check.py`.

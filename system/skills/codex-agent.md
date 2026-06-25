@@ -65,6 +65,21 @@ task logs, and durable memory.
 14. Queue prompt/rule/SOP candidates for async review only when useful.
 15. If Markdown navigation, memory, skills, or core docs changed, verify structure integrity.
 
+## Silent Memory Consolidation
+
+Canonical policy:
+
+- 日常对话不打断用户。
+- Codex 在执行任务时，只记录必要的结构化痕迹。
+- 每天定时任务统一整理当天 workspace 痕迹。
+- 不保存完整聊天记录，只沉淀稳定偏好、规则、SOP、项目事实和未完成上下文。
+
+During live work, do not run broad memory consolidation and do not ask the user
+extra maintenance questions. Leave only small structured traces in
+`workspace/meta/task-log.jsonl`, `workspace/meta/active-context.md`, or
+`workspace/meta/friction-log.md` when they are useful. Daily maintenance handles
+the actual consolidation.
+
 ## Token Saving Rules
 
 These rules are hard boundaries.

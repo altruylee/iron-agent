@@ -19,6 +19,7 @@
 - Added `iron update` for one-command workspace upgrades that preserve accumulated user data.
 - Added top-level clarification-before-execution protocol for Codex, Claude Code, and WorkBuddy.
 - Added daily maintenance upgrade reminders and required HTML report links.
+- Added scheduled daily conversation consolidation into `output/maintenance/YYYY-MM-DD-conversation-digest.md`.
 
 ## 0.3.7
 

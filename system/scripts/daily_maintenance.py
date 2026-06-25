@@ -383,6 +383,91 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
     return report_path
 
 
+def read_today_task_entries(root: Path, now: datetime) -> list[dict[str, object]]:
+    log_path = root / "workspace" / "meta" / "task-log.jsonl"
+    if not log_path.exists():
+        return []
+    day = now.date().isoformat()
+    entries: list[dict[str, object]] = []
+    for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not line.strip():
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if str(entry.get("time", "")).startswith(day):
+            entries.append(entry)
+    return entries
+
+
+def as_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item).strip()]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()]
+    return []
+
+
+def write_conversation_digest(root: Path, now: datetime) -> Path:
+    report_dir = root / "output" / "maintenance"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    digest_path = report_dir / f"{now.date().isoformat()}-conversation-digest.md"
+    entries = read_today_task_entries(root, now)
+    active_context = root / "workspace" / "meta" / "active-context.md"
+    friction_log = root / "workspace" / "meta" / "friction-log.md"
+    memory_candidates = root / "workspace" / "meta" / "memory-candidates.md"
+
+    tasks = [str(entry.get("task", "")).strip() for entry in entries if str(entry.get("task", "")).strip()]
+    candidates: list[str] = []
+    friction: list[str] = []
+    for entry in entries:
+        candidates.extend(as_list(entry.get("memory_candidates")))
+        friction.extend(as_list(entry.get("friction")))
+
+    body = [
+        "# Daily Conversation Digest",
+        "",
+        "## Directory",
+        "",
+        "- [Summary](#summary)",
+        "- [Tasks](#tasks)",
+        "- [Memory Candidates](#memory-candidates)",
+        "- [Friction](#friction)",
+        "- [Continuation Sources](#continuation-sources)",
+        "",
+        "## Summary",
+        "",
+        f"- Date: `{now.date().isoformat()}`",
+        f"- Task-log entries: `{len(entries)}`",
+        "- Source: workspace traces only; platform chat transcripts are used only if exported into this workspace.",
+        "",
+        "## Tasks",
+        "",
+        *(f"- {task}" for task in tasks[:50]),
+        *([] if tasks else ["- No task-log entries found for today."]),
+        "",
+        "## Memory Candidates",
+        "",
+        *(f"- {item}" for item in candidates[:50]),
+        *([] if candidates else ["- No explicit memory candidates found today."]),
+        "",
+        "## Friction",
+        "",
+        *(f"- {item}" for item in friction[:50]),
+        *([] if friction else ["- No explicit friction items found today."]),
+        "",
+        "## Continuation Sources",
+        "",
+        f"- Active context: `{active_context.relative_to(root)}`" if active_context.exists() else "- Active context: missing",
+        f"- Friction log: `{friction_log.relative_to(root)}`" if friction_log.exists() else "- Friction log: missing",
+        f"- Memory candidates: `{memory_candidates.relative_to(root)}`" if memory_candidates.exists() else "- Memory candidates: missing",
+        "",
+    ]
+    digest_path.write_text("\n".join(body), encoding="utf-8")
+    return digest_path
+
+
 def append_task_log(root: Path, report_path: Path, verification: str) -> None:
     script = root / "system" / "scripts" / "append_task_log.py"
     run_python(
@@ -437,6 +522,9 @@ def main() -> int:
     daily = config.get("daily_maintenance", {})
     now = datetime.now(TZ)
     lines: list[str] = []
+
+    digest_path = write_conversation_digest(root, now)
+    lines.append(f"Daily conversation digest: {digest_path.relative_to(root)}")
 
     if not daily.get("enabled", True):
         print("Daily maintenance disabled")

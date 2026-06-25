@@ -11,6 +11,7 @@ feel more personalized to the user.
 - [First Principle](#first-principle)
 - [Installation State](#installation-state)
 - [Memory Routing Contract](#memory-routing-contract)
+- [Daily Conversation Consolidation](#daily-conversation-consolidation)
 - [Pack Roadmap](#pack-roadmap)
 - [Navigation Index](#navigation-index)
 - [Task Read Paths](#task-read-paths)
@@ -91,6 +92,27 @@ Rules:
 - If an index exceeds its line limit, split it or move cold entries to `cold/`.
 - Do not block normal conversation just because no matching directory exists.
 
+## Daily Conversation Consolidation
+
+Canonical policy:
+
+- 日常对话不打断用户。
+- Codex 在执行任务时，只记录必要的结构化痕迹。
+- 每天定时任务统一整理当天 workspace 痕迹。
+- 不保存完整聊天记录，只沉淀稳定偏好、规则、SOP、项目事实和未完成上下文。
+
+Daily maintenance consolidates the day's workspace traces into memory
+candidates. It must not interrupt normal conversations and must not save full
+chat history.
+
+1. Scheduled maintenance reads `system/skills/daily-conversation-consolidation.md`.
+2. It consolidates today's `workspace/meta/task-log.jsonl`, active context,
+   friction log, memory candidates, and maintenance outputs.
+3. It writes `output/maintenance/YYYY-MM-DD-conversation-digest.md`.
+4. It promotes stable candidates through the normal daily maintenance pipeline.
+5. If a platform exports chat transcripts into the workspace, the digest may use
+   them; otherwise missing transcript access is normal.
+
 ## Installation State
 
 This section is the single source of truth for first-use setup.
@@ -136,6 +158,7 @@ Use this index before scanning the repository.
 | Route prompts/rules | `system/scripts/memory_router.py` | Machine-routed low-token overlays |
 | Use global durable memory | `workspace/meta/memory.md` | Global preferences only when needed |
 | Maintain memory | `system/skills/memory-maintenance.md` | Extract, classify, dedupe, and merge memory candidates |
+| Daily conversation consolidation | `system/skills/daily-conversation-consolidation.md` | Summarize today's workspace traces for nightly maintenance |
 | Daily idle maintenance | `system/skills/daily-maintenance.md` | Run scheduled housekeeping and memory preparation |
 | Codex automation | `system/skills/codex-automation.md` | Run scheduled AI shadow review after local preflight |
 | Install Windows schedule | `system/scripts/install_windows_task.ps1` | Register daily maintenance in Windows Task Scheduler after user approval |
@@ -166,6 +189,7 @@ Follow the shortest matching path.
 | Ingest material | `AGENTS.md` -> `workspace/workspace-config.md` -> `wiki/_schema.md` -> `system/integrations/personal-wiki.md` |
 | Research | `AGENTS.md` -> `workspace/workspace-config.md` -> `system/skills/research.md` -> `wiki/_schema.md` |
 | Memory update | `AGENTS.md` -> `system/skills/memory-maintenance.md` -> `workspace/meta/memory.md` -> `workspace/meta/task-log.jsonl` |
+| Daily conversation consolidation | `AGENTS.md` -> `system/skills/daily-conversation-consolidation.md` -> `output/maintenance/YYYY-MM-DD-conversation-digest.md` |
 | Daily maintenance | `AGENTS.md` -> `system/skills/daily-maintenance.md` -> `config/maintenance.json` -> `system/scripts/daily_maintenance.py` |
 | Codex automation install | `AGENTS.md` -> `system/skills/codex-automation.md` -> `system/prompts/codex-shadow-maintenance.md` |
 | Windows schedule install | `AGENTS.md` -> `system/skills/daily-maintenance.md` -> `system/scripts/install_windows_task.ps1` |
@@ -186,6 +210,9 @@ Iron Agent is organized as a four-stage Codex workspace pack.
 ## Operating Rules
 
 - Use Chinese when communicating with the user unless the user asks otherwise.
+- Do not interrupt normal conversation for memory consolidation; leave only
+  necessary structured traces during execution and let daily maintenance
+  consolidate them later.
 - Keep the user's original Chinese request. Do not translate it to English by
   default; add English keywords only for web search, technical docs, code
   identifiers, library names, or exact error matching.

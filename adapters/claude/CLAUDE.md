@@ -21,13 +21,22 @@ For every task:
 5. If paths are returned, read only those paths and apply them as an overlay to
    the user's request.
 6. If no paths are returned, treat the request as new content and continue normally.
-7. Record useful completed work and candidate prompts/rules in `workspace/meta/task-log.jsonl`.
+7. Daily maintenance consolidates today's workspace traces through
+   `system/skills/daily-conversation-consolidation.md`.
 
 ## Memory
 
 Do not scan all memory. Directory files are route-only and must stay low-token.
 Iron Agent stores prompts, rules, SOPs, and preferences that make the model feel
 more personalized while using fewer tokens.
+
+Silent consolidation policy:
+
+- Do not interrupt normal conversation for memory consolidation.
+- During execution, leave only necessary structured traces in the workspace.
+- Daily maintenance consolidates the day's workspace traces.
+- Do not save full chat history; preserve only stable preferences, rules, SOPs,
+  project facts, and unfinished context.
 
 Default command:
 
@@ -41,4 +50,5 @@ python system/scripts/memory_router.py --task "<task>"
 - Ask before high-risk or external side-effect actions.
 - Do not store secrets.
 - Do not bypass P0-P3 permission tiers in `system/skills/codex-agent.md`.
+- Do not save full chat history; daily maintenance consolidates only workspace traces.
 - Nightly maintenance organizes new candidates and reports what changed.
