@@ -11,7 +11,9 @@ feel more personalized to the user.
 - [First Principle](#first-principle)
 - [Installation State](#installation-state)
 - [Memory Routing Contract](#memory-routing-contract)
+- [Memory Evolution Policy](#memory-evolution-policy)
 - [Daily Conversation Consolidation](#daily-conversation-consolidation)
+- [Manual Capture Trigger](#manual-capture-trigger)
 - [Pack Roadmap](#pack-roadmap)
 - [Navigation Index](#navigation-index)
 - [Task Read Paths](#task-read-paths)
@@ -37,15 +39,17 @@ For every task in this workspace:
    before ordinary work.
 4. Read `workspace/workspace-config.md`.
 5. Read `system/skills/codex-agent.md`.
-6. If the user says "continue", "last time", "resume", or similar, read
+6. Read `workspace/meta/user-rules.md` if it exists, and apply it as user-level
+   overrides unless the current user message says otherwise.
+7. If the user says "continue", "last time", "resume", or similar, read
    `workspace/meta/active-context.md` before doing anything else.
-7. For memory/rules, run `python system/scripts/memory_router.py --task "<task>"`.
+8. For memory/rules, run `python system/scripts/memory_router.py --task "<task>" --semantic`.
    If it returns paths, read only those paths and layer the prompts/rules onto
    the user request. If it returns no paths, treat the request as new content
    and continue normally.
-8. Route materials and outputs using `wiki/_schema.md`.
-9. Record finished work in `workspace/meta/task-log.jsonl` when practical.
-10. Update `workspace/meta/active-context.md` when there is useful continuation
+9. Route materials and outputs using `wiki/_schema.md`.
+10. Record finished work in `workspace/meta/task-log.jsonl` when practical.
+11. Update `workspace/meta/active-context.md` when there is useful continuation
    state.
 
 ## First Principle
@@ -83,7 +87,7 @@ Iron Agent optimizes for precise, low-token navigation.
 Memory/rule lookup flow:
 
 1. User question.
-2. Run `python system/scripts/memory_router.py --task "<task>"`.
+2. Run `python system/scripts/memory_router.py --task "<task>" --semantic`.
 3. If paths are returned, read the returned 1-5 paths.
 4. Apply relevant prompts, rules, preferences, and SOPs as an overlay on the
    user's current request.
@@ -98,6 +102,16 @@ Rules:
 - Detailed information belongs only in leaf files.
 - If an index exceeds its line limit, split it or move cold entries to `cold/`.
 - Do not block normal conversation just because no matching directory exists.
+
+## Memory Evolution Policy
+
+- Candidate memory does not require approval before being displayed.
+- Daily maintenance shows new candidates in the report and web page.
+- If the user dislikes a candidate, they can ask to delete or revise it later.
+- Potential conflicts do not block maintenance.
+- The latest stable rule or candidate has priority by default.
+- Conflicts must be shown in daily maintenance output so the user can judge.
+- Behavior evaluation suites are not part of the default Iron workflow.
 
 ## Daily Conversation Consolidation
 
@@ -119,6 +133,21 @@ chat history.
 4. It promotes stable candidates through the normal daily maintenance pipeline.
 5. If a platform exports chat transcripts into the workspace, the digest may use
    them; otherwise missing transcript access is normal.
+
+## Manual Capture Trigger
+
+When the user types `iron capture` in chat, do not assume the CLI can read the
+official Codex, Claude Code, or WorkBuddy transcript.
+
+Instead:
+
+1. Summarize only the currently visible conversation context into `today-chat.md`.
+2. Include only stable preferences, rules, SOP candidates, project facts, and
+   unfinished context.
+3. Do not copy the full chat transcript.
+4. Run `iron capture`.
+5. Report the generated digest, memory candidate file, daily maintenance HTML,
+   and `output/maintenance/index.html`.
 
 ## Installation State
 
@@ -164,8 +193,10 @@ Use this index before scanning the repository.
 | Resume previous work | `workspace/meta/active-context.md` | Short-lived continuation anchors |
 | Route prompts/rules | `system/scripts/memory_router.py` | Machine-routed low-token overlays |
 | Use global durable memory | `workspace/meta/memory.md` | Global preferences only when needed |
+| User custom rules | `workspace/meta/user-rules.md` | User-level overrides that survive updates |
 | Maintain memory | `system/skills/memory-maintenance.md` | Extract, classify, dedupe, and merge memory candidates |
 | Daily conversation consolidation | `system/skills/daily-conversation-consolidation.md` | Summarize today's workspace traces for nightly maintenance |
+| Manual capture trigger | `today-chat.md` then `iron capture` | Capture currently visible chat context on user request |
 | Daily idle maintenance | `system/skills/daily-maintenance.md` | Run scheduled housekeeping and memory preparation |
 | Codex automation | `system/skills/codex-automation.md` | Run scheduled AI shadow review after local preflight |
 | Install Windows schedule | `system/scripts/install_windows_task.ps1` | Register daily maintenance in Windows Task Scheduler after user approval |
@@ -186,6 +217,7 @@ Follow the shortest matching path.
 | Release publish | `AGENTS.md` -> `system/scripts/release_cleanup.py` -> `system/scripts/release_check.py` |
 | General execution | `AGENTS.md` -> `workspace/workspace-config.md` -> `system/skills/codex-agent.md` |
 | Prompt/rule lookup | `AGENTS.md` -> `system/scripts/memory_router.py` -> returned paths only -> user request |
+| User custom rules | `AGENTS.md` -> `workspace/meta/user-rules.md` |
 | User agent import | `AGENTS.md` -> `system/skills/domain-agent-import.md` -> source agent file -> `packs/domain-agents/INDEX.md` |
 | Domain-matched task | `AGENTS.md` -> `system/skills/codex-agent.md` -> `packs/domain-agents/INDEX.md` -> matching `RUNTIME.md` -> matching `RULES.md` |
 | Skill install | `AGENTS.md` -> `system/skills/skill-installation.md` -> user-provided source -> `system/scripts/audit_skill.py` |
@@ -197,6 +229,7 @@ Follow the shortest matching path.
 | Research | `AGENTS.md` -> `workspace/workspace-config.md` -> `system/skills/research.md` -> `wiki/_schema.md` |
 | Memory update | `AGENTS.md` -> `system/skills/memory-maintenance.md` -> `workspace/meta/memory.md` -> `workspace/meta/task-log.jsonl` |
 | Daily conversation consolidation | `AGENTS.md` -> `system/skills/daily-conversation-consolidation.md` -> `output/maintenance/YYYY-MM-DD-conversation-digest.md` |
+| Manual capture | `AGENTS.md` -> current visible context -> `today-chat.md` -> `iron capture` |
 | Daily maintenance | `AGENTS.md` -> `system/skills/daily-maintenance.md` -> `config/maintenance.json` -> `system/scripts/daily_maintenance.py` |
 | Codex automation install | `AGENTS.md` -> `system/skills/codex-automation.md` -> `system/prompts/codex-shadow-maintenance.md` |
 | Windows schedule install | `AGENTS.md` -> `system/skills/daily-maintenance.md` -> `system/scripts/install_windows_task.ps1` |
@@ -241,6 +274,7 @@ Iron Agent is organized as a four-stage Codex workspace pack.
 | Ingest material | `wiki/_schema.md` | `wiki/raw/`, `wiki/sources/` |
 | Research | `system/skills/research.md`, `wiki/` | `output/research/`, then optionally `wiki/explorations/` |
 | Durable memory | `workspace/meta/memory.md` | `workspace/meta/memory.md` |
+| User custom rules | `workspace/meta/user-rules.md` | `workspace/meta/user-rules.md` |
 | Layered memory | `workspace/memory/INDEX.md` | `workspace/memory/short-term/`, `workspace/memory/episodes/`, `workspace/memory/semantic/sops/` |
 | Task audit | `workspace/meta/task-log.jsonl` | `workspace/meta/task-log.jsonl` |
 | System friction | `workspace/meta/friction-log.md` | `workspace/meta/friction-log.md` |

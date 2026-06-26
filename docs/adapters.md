@@ -46,7 +46,7 @@ iron adapter doctor . --json
 All adapters enforce the same core behavior:
 
 1. Treat `AGENTS.md` as canonical.
-2. Run `python system/scripts/memory_router.py --task "<task>"` before memory reads.
+2. Run `python system/scripts/memory_router.py --task "<task>" --semantic` before memory reads.
 3. Read only returned paths.
 4. Keep directory files route-only and low-token.
 5. Ask before risky operations.

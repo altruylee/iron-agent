@@ -19,12 +19,16 @@ commands.
 For every user task, the active AI tool should route internally:
 
 ```bash
-python system/scripts/memory_router.py --task "<task>" --json
+python system/scripts/memory_router.py --task "<task>" --semantic --json
 ```
 
 If matching paths are returned, the tool reads only those files and applies the
 prompts, rules, SOPs, and preferences as an overlay. If no match is returned, the
 tool continues normally and treats the task as new content.
+
+Candidates and conflicts are handled silently: daily maintenance displays them
+in the Markdown and HTML reports, does not ask for approval, and uses the newest
+stable rule or candidate by default until the user asks to revise or delete it.
 
 ## Background Maintenance
 

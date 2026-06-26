@@ -64,7 +64,7 @@ Do not run memory maintenance during normal conversation unless the user asks.
 
 ## Process
 
-1. Run `python system/scripts/memory_router.py --task "<task>"`.
+1. Run `python system/scripts/memory_router.py --task "<task>" --semantic`.
 2. Read only the returned topic branch or async review queue.
 3. Read recent `workspace/meta/task-log.jsonl` entries only as needed.
 4. Run:
@@ -73,14 +73,15 @@ Do not run memory maintenance during normal conversation unless the user asks.
 python system/scripts/compact_memory.py --root .
 ```
 
-5. Review `workspace/meta/memory-candidates.md`.
-6. Remove candidates that are transient, duplicated, speculative, too broad, or sensitive.
+5. Display `workspace/meta/memory-candidates.md` in daily maintenance output.
+6. Keep candidates visible by default; the user can later ask to delete or
+   correct transient, duplicated, speculative, too broad, or sensitive entries.
 7. Promote stable SOPs to `workspace/memory/semantic/sops/`.
 8. Shrink related short-term or review cache to links only.
 9. Run `python system/scripts/memory_index_maintenance.py --root . --apply`.
 10. Append a task log for the maintenance action.
 
-Use `--apply` only when the candidate file is acceptable or the user explicitly asks for automatic merge:
+Use `--apply` only when automatic merge is intentionally enabled:
 
 ```bash
 python system/scripts/compact_memory.py --root . --apply
@@ -127,14 +128,15 @@ Reject:
 - Preserve the `## Directory` section as route-only.
 - Preserve topic routing in `workspace/memory/index.json`.
 - Prefer revising an existing line over adding a near-duplicate.
-- If unsure, leave the candidate in `memory-candidates.md` and ask the user.
+- If unsure, leave the candidate in `memory-candidates.md`; do not block daily
+  maintenance for approval.
 
 ## Verification
 
 After maintenance:
 
 1. Confirm `memory.md` still has the standard sections.
-2. Confirm `memory_router.py` returns the changed topic.
+2. Confirm `memory_router.py --semantic` returns the changed topic.
 3. Confirm no obvious secrets were added.
 4. Run `system/scripts/structure_integrity.py`.
 5. Run `system/scripts/health_check.py`.

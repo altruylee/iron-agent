@@ -69,19 +69,36 @@ def read_text_tokens(path: Path) -> int:
     return estimate_tokens(path.read_text(encoding="utf-8", errors="replace"))
 
 
+def cached_text_tokens(root: Path, path: Path, cache: dict[str, dict[str, int]]) -> int:
+    stat = path.stat()
+    rel = path.relative_to(root).as_posix()
+    cached = cache.get(rel)
+    mtime_ns = stat.st_mtime_ns
+    size = stat.st_size
+    if cached and cached.get("mtime_ns") == mtime_ns and cached.get("size") == size:
+        return int(cached.get("tokens", 0))
+    tokens = read_text_tokens(path)
+    cache[rel] = {"mtime_ns": mtime_ns, "size": size, "tokens": tokens}
+    return tokens
+
+
 def token_savings_summary(root: Path) -> dict[str, int]:
     memory_root = root / "workspace" / "memory"
+    cache_path = root / "workspace" / "meta" / "token-cache.json"
+    cache = load_json(cache_path, {})
     all_memory_tokens = 0
     if memory_root.exists():
         for path in memory_root.rglob("*.md"):
-            all_memory_tokens += read_text_tokens(path)
+            all_memory_tokens += cached_text_tokens(root, path, cache)
 
     routing_files = [
         root / "workspace" / "memory" / "INDEX.md",
         root / "workspace" / "memory" / "index.json",
         root / "workspace" / "memory" / "hot" / "INDEX.md",
     ]
-    routed_tokens = sum(read_text_tokens(path) for path in routing_files)
+    routed_tokens = sum(cached_text_tokens(root, path, cache) for path in routing_files if path.exists())
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
     avoided_tokens = max(0, all_memory_tokens - routed_tokens)
     savings_percent = int(round((avoided_tokens / all_memory_tokens) * 100)) if all_memory_tokens else 0
     return {
@@ -111,10 +128,93 @@ def count_index_files(root: Path) -> int:
     return len([path for path in memory_root.rglob("INDEX.md") if path.is_file()])
 
 
+def count_jsonl(path: Path) -> int:
+    if not path.exists():
+        return 0
+    return len([line for line in path.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()])
+
+
+def candidate_lines(root: Path, limit: int = 80) -> list[str]:
+    path = root / "workspace" / "meta" / "memory-candidates.md"
+    if not path.exists():
+        return []
+    rows: list[str] = []
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if not line.startswith("- "):
+            continue
+        item = line[2:].strip()
+        if not item or item.lower().startswith("source digest:"):
+            continue
+        rows.append(item)
+    return rows[-limit:]
+
+
+def polarity(text: str) -> int:
+    lowered = text.lower()
+    negative = ["不要", "不能", "禁止", "不允许", "never", "do not", "don't", "cannot"]
+    positive = ["必须", "需要", "默认", "应该", "优先", "always", "must", "should", "default"]
+    if any(token in lowered for token in negative):
+        return -1
+    if any(token in lowered for token in positive):
+        return 1
+    return 0
+
+
+def conflict_tokens(text: str) -> set[str]:
+    lowered = text.lower()
+    tokens = set(re.findall(r"[a-z0-9][a-z0-9_-]{2,}", lowered))
+    cjk = "".join(char for char in lowered if "\u4e00" <= char <= "\u9fff")
+    tokens.update(cjk[index : index + 2] for index in range(max(0, len(cjk) - 1)))
+    return {token for token in tokens if len(token) >= 2}
+
+
+def memory_rule_lines(root: Path, limit: int = 500) -> list[str]:
+    memory_root = root / "workspace" / "memory"
+    rows: list[str] = []
+    if memory_root.exists():
+        for path in memory_root.rglob("*.md"):
+            if path.name == "INDEX.md":
+                continue
+            for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                line = raw.strip().strip("-* ")
+                if len(line) >= 8 and polarity(line):
+                    rows.append(line)
+                if len(rows) >= limit:
+                    return rows
+    return rows
+
+
+def detect_memory_conflicts(root: Path, limit: int = 20) -> list[str]:
+    candidates = [(item, polarity(item), conflict_tokens(item)) for item in candidate_lines(root)]
+    existing = [(item, polarity(item), conflict_tokens(item)) for item in memory_rule_lines(root)]
+    conflicts: list[str] = []
+    seen: set[str] = set()
+    for new_text, new_pol, new_tokens in candidates:
+        if not new_pol or not new_tokens:
+            continue
+        for old_text, old_pol, old_tokens in existing:
+            if old_pol == 0 or old_pol == new_pol:
+                continue
+            overlap = new_tokens & old_tokens
+            if len(overlap) < 2:
+                continue
+            key = f"{new_text}\n{old_text}"
+            if key in seen:
+                continue
+            seen.add(key)
+            conflicts.append(f"Latest wins: `{new_text}` may conflict with older memory `{old_text}`")
+            if len(conflicts) >= limit:
+                return conflicts
+    return conflicts
+
+
 def extract_maintenance_metrics(root: Path, now: datetime, lines: list[str], savings: dict[str, int]) -> dict[str, object]:
     joined = "\n".join(lines)
     candidates = first_int(r"Prepared\s+(\d+)\s+memory candidates", joined)
     promoted_sops = first_int(r"Promoted SOP files:\s*(\d+)", joined)
+    semantic_records = first_int(r"Semantic index rebuilt:\s*(\d+)\s+records", joined)
+    conflicts = first_int(r"Potential memory conflicts:\s*(\d+)", joined)
     indexes = count_index_files(root)
     sop_total = count_sops(root)
     maturity = min(99, 10 + sop_total * 3 + indexes)
@@ -130,12 +230,16 @@ def extract_maintenance_metrics(root: Path, now: datetime, lines: list[str], sav
         "promoted_sops": promoted_sops,
         "rules_promoted": max(0, candidates - promoted_sops),
         "indexes_slimmed": indexes,
+        "semantic_records": semantic_records,
+        "potential_conflicts": conflicts,
         "sop_total": sop_total,
         "maturity_level": maturity,
         "events": [
             f"Prepared {candidates} memory candidates",
             f"Promoted {promoted_sops} SOP files",
             f"Checked {indexes} low-token indexes",
+            f"Rebuilt {semantic_records} semantic routes",
+            f"Found {conflicts} potential conflicts; latest memory wins by default",
             f"Estimated {savings['estimated_avoided_tokens']} tokens avoided",
         ],
     }
@@ -292,7 +396,7 @@ def render_observatory_html(data: dict[str, object]) -> str:
       <article class="card"><p class="metric-label">Cumulative Saved</p><div class="metric-value green" data-key="cumulative_saved">0</div><div class="metric-note">maintenance history total</div></article>
       <article class="card"><p class="metric-label">Candidates</p><div class="metric-value" data-key="memory_candidates">0</div><div class="metric-note">new memory candidates</div></article>
       <article class="card"><p class="metric-label">SOPs Promoted</p><div class="metric-value amber" data-key="promoted_sops">0</div><div class="metric-note">stable procedures captured</div></article>
-      <article class="card"><p class="metric-label">Indexes Checked</p><div class="metric-value pink" data-key="indexes_slimmed">0</div><div class="metric-note">low-token routing files</div></article>
+      <article class="card"><p class="metric-label">Semantic Routes</p><div class="metric-value pink" data-key="semantic_records">0</div><div class="metric-note">local summary vectors</div></article>
     </section>
     <section class="dashboard">
       <article class="card"><div class="section-title"><h3>Token Savings Trend</h3><span>full memory read vs routed surface</span></div><svg class="chart" id="trend" viewBox="0 0 900 320"></svg></article>
@@ -318,7 +422,7 @@ def render_observatory_html(data: dict[str, object]) -> str:
     document.getElementById("nodePrompts").textContent = `Candidates +${{today.memory_candidates}}`;
     document.getElementById("nodeRules").textContent = `Rules +${{today.rules_promoted}}`;
     document.getElementById("nodeSop").textContent = `SOP +${{today.promoted_sops}}`;
-    document.getElementById("nodeIndex").textContent = `Indexes ${{today.indexes_slimmed}}`;
+    document.getElementById("nodeIndex").textContent = `Semantic ${{today.semantic_records}}`;
     document.getElementById("miniRules").textContent = today.rules_promoted;
     document.getElementById("miniSops").textContent = today.sop_total;
     document.getElementById("miniReduction").textContent = `${{today.savings_percent}}%`;
@@ -348,6 +452,9 @@ def render_observatory_html(data: dict[str, object]) -> str:
 
 def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
     savings = token_savings_summary(root)
+    candidates = candidate_lines(root, limit=50)
+    conflicts = detect_memory_conflicts(root, limit=20)
+    semantic_records = count_jsonl(root / "workspace" / "memory" / "semantic_index.jsonl")
     report_dir = root / "output" / "maintenance"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"{now.date().isoformat()}-daily-maintenance.md"
@@ -358,6 +465,9 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
         "",
         "- [Summary](#summary)",
         "- [Token Savings](#token-savings)",
+        "- [Semantic Routing](#semantic-routing)",
+        "- [Memory Candidates](#memory-candidates)",
+        "- [Potential Conflicts](#potential-conflicts)",
         "- [Details](#details)",
         "",
         "## Summary",
@@ -365,6 +475,8 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
         f"- Run time: `{now.isoformat(timespec='seconds')}`",
         f"- Estimated avoided tokens: `{savings['estimated_avoided_tokens']}`",
         f"- Estimated savings: `{savings['estimated_savings_percent']}%`",
+        f"- Semantic route records: `{semantic_records}`",
+        f"- Potential conflicts: `{len(conflicts)}`; latest candidate has priority by default.",
         "",
         "## Token Savings",
         "",
@@ -373,6 +485,26 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
         f"- Estimated tokens avoided by routing first: `{savings['estimated_avoided_tokens']}` tokens",
         f"- Estimated reduction: `{savings['estimated_savings_percent']}%`",
         "- Estimate uses `4 characters ~= 1 token`; actual model tokenization may vary.",
+        "",
+        "## Semantic Routing",
+        "",
+        f"- Semantic index: `workspace/memory/semantic_index.jsonl`",
+        f"- Semantic vectors: `workspace/memory/semantic_vectors.jsonl`",
+        f"- Records: `{semantic_records}`",
+        "- Query flow: `iron route \"<task>\"` -> 2-5 routed paths -> read only matched leaves.",
+        "- If semantic files are missing or stale, daily maintenance rebuilds them; keyword routing remains the fallback.",
+        "",
+        "## Memory Candidates",
+        "",
+        "- Candidates are not blocked for approval. They are displayed here for user review; unwanted items can be deleted or corrected later.",
+        *(f"- {item}" for item in candidates),
+        *([] if candidates else ["- No memory candidates currently visible."]),
+        "",
+        "## Potential Conflicts",
+        "",
+        "- Conflict policy: latest stable rule or candidate wins by default; conflicts are shown for user judgment.",
+        *(f"- {item}" for item in conflicts),
+        *([] if conflicts else ["- No potential conflicts detected."]),
         "",
         "## Details",
         "",
@@ -482,11 +614,11 @@ def append_task_log(root: Path, report_path: Path, verification: str) -> None:
             "--permission",
             "P1",
             "--read",
-            "config/maintenance.json;workspace/memory/INDEX.md;workspace/meta/task-log.jsonl",
+            "config/maintenance.json;workspace/memory/INDEX.md;workspace/memory/index.json;workspace/meta/task-log.jsonl",
             "--written",
-            f"workspace/meta/memory-candidates.md;workspace/meta/maintenance-state.json;workspace/memory/semantic/sops/;{report_path.relative_to(root)};workspace/meta/task-log.jsonl",
+            f"workspace/meta/memory-candidates.md;workspace/meta/maintenance-state.json;workspace/memory/semantic/sops/;workspace/memory/semantic_index.jsonl;workspace/memory/semantic_vectors.jsonl;{report_path.relative_to(root)};workspace/meta/task-log.jsonl",
             "--commands",
-            "python system/scripts/daily_maintenance.py;python system/scripts/compact_memory.py;python system/scripts/shadow_reviewer.py",
+            "python system/scripts/daily_maintenance.py;python system/scripts/compact_memory.py;python system/scripts/shadow_reviewer.py;python system/scripts/memory_router.py --rebuild-index",
             "--verification",
             verification,
             "--memory-candidates",
@@ -571,6 +703,15 @@ def main() -> int:
     if slim_result.stderr.strip():
         lines.append(f"index stderr: {slim_result.stderr.strip()}")
 
+    router_script = root / "system" / "scripts" / "memory_router.py"
+    semantic_result = run_python(router_script, ["--root", str(root), "--rebuild-index"])
+    lines.append(semantic_result.stdout.strip() or "Semantic index rebuild completed")
+    if semantic_result.stderr.strip():
+        lines.append(f"semantic stderr: {semantic_result.stderr.strip()}")
+
+    conflicts = detect_memory_conflicts(root)
+    lines.append(f"Potential memory conflicts: {len(conflicts)}; latest candidate has priority by default.")
+
     savings = token_savings_summary(root)
     lines.append(
         "Token savings estimate: "
@@ -583,7 +724,7 @@ def main() -> int:
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state = {
         "last_run_at": now.isoformat(timespec="seconds"),
-        "last_status": "ok" if result.returncode == 0 and shadow_result.returncode == 0 and slim_result.returncode == 0 else "error",
+        "last_status": "ok" if result.returncode == 0 and shadow_result.returncode == 0 and slim_result.returncode == 0 and semantic_result.returncode == 0 else "error",
         "auto_apply_memory": bool(daily.get("auto_apply_memory", False)),
         "shadow_review": bool(daily.get("shadow_review", True)),
     }
@@ -605,7 +746,7 @@ def main() -> int:
     append_task_log(root, report_path, "daily maintenance completed")
 
     print("\n".join(lines))
-    return result.returncode or shadow_result.returncode or slim_result.returncode
+    return result.returncode or shadow_result.returncode or slim_result.returncode or semantic_result.returncode
 
 
 if __name__ == "__main__":

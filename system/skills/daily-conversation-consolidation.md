@@ -49,6 +49,10 @@ By default, this reads `today-chat.md`, uses `YYYY-MM-DD daily chat` as the
 title, extracts only stable preferences, rules, SOP candidates, project facts,
 and unfinished context, and then runs daily maintenance with `--force`.
 
+If the user types `iron capture` inside an agent chat, the agent must first
+write `today-chat.md` from currently visible context only, without copying the
+full transcript, and then run `iron capture`.
+
 Advanced usage:
 
 ```bash
@@ -58,6 +62,8 @@ iron capture . --file chat.md --no-maintenance
 ```
 
 The command does not store the full chat text.
+After successful capture, the source chat file is removed by default. Use
+`--keep-source` only when raw input retention is intentional.
 
 ## Output
 

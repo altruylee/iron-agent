@@ -49,7 +49,11 @@ Run daily maintenance when:
 - Always write a task log entry.
 - Preserve generated review files for user inspection.
 - Tell the user what was organized: new prompts, new rules, moved indexes,
-  unresolved candidates, and anything requiring approval.
+  displayed candidates, and potential conflicts.
+- Candidate memory does not require approval. Display it; let the user request
+  deletion or correction later.
+- Potential conflicts do not block maintenance. The latest stable rule or
+  candidate wins by default, and the conflict must be shown in the report.
 - Include the token savings estimate from the maintenance report.
 - The final output must return both the long-term report index
   `output/maintenance/index.html` and the latest daily HTML report
@@ -74,18 +78,21 @@ The script will:
    workspace traces.
 5. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
 6. Slim indexes and keep top-level routing low-token.
-7. Estimate tokens avoided by routing first instead of reading all memory.
-8. Optionally apply approved global memory candidates if configured.
-9. Write `workspace/meta/maintenance-state.json`.
-10. Write `workspace/meta/codex-automation-trigger.json`.
-11. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
-12. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
-13. Update `output/maintenance/index.html`.
-14. Update `output/maintenance/maintenance-history.json`.
-15. Append a task log entry.
-16. Surface a concise user notice from the maintenance report.
-17. Return `output/maintenance/index.html` and the latest daily HTML report path.
-18. Remind the user that existing workspaces can be updated with
+7. Rebuild `workspace/memory/semantic_index.jsonl` and
+   `workspace/memory/semantic_vectors.jsonl`.
+8. Detect potential memory conflicts and apply the latest-wins default.
+9. Estimate tokens avoided by routing first instead of reading all memory.
+10. Optionally apply global memory candidates if configured.
+11. Write `workspace/meta/maintenance-state.json`.
+12. Write `workspace/meta/codex-automation-trigger.json`.
+13. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
+14. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
+15. Update `output/maintenance/index.html`.
+16. Update `output/maintenance/maintenance-history.json`.
+17. Append a task log entry.
+18. Surface a concise user notice from the maintenance report.
+19. Return `output/maintenance/index.html` and the latest daily HTML report path.
+20. Remind the user that existing workspaces can be updated with
     `iron update . --source <new-pack-path>` without replacing accumulated data.
 
 Token estimates use `4 characters ~= 1 token`. Treat them as directional
@@ -152,10 +159,13 @@ After running:
 2. Confirm `workspace/meta/codex-automation-trigger.json` was updated.
 3. Confirm `workspace/meta/memory-candidates.md` exists.
 4. Confirm `workspace/memory/semantic/sops/` stays structured.
-5. Confirm `output/maintenance/YYYY-MM-DD-conversation-digest.md` exists.
-6. Confirm `output/maintenance/` has Markdown and HTML reports if enabled.
-7. Confirm the Markdown report includes `## Token Savings`.
-8. Confirm `output/maintenance/index.html` opens as the Memory Observatory page.
-9. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
-10. Confirm Codex automation is active when available.
-11. Run `system/scripts/health_check.py`.
+5. Confirm `workspace/memory/semantic_index.jsonl` exists.
+6. Confirm `workspace/memory/semantic_vectors.jsonl` exists.
+7. Confirm `output/maintenance/YYYY-MM-DD-conversation-digest.md` exists.
+8. Confirm `output/maintenance/` has Markdown and HTML reports if enabled.
+9. Confirm the Markdown report includes `## Token Savings`,
+   `## Semantic Routing`, and `## Potential Conflicts`.
+10. Confirm `output/maintenance/index.html` opens as the Memory Observatory page.
+11. For scheduler install, confirm `Get-ScheduledTask -TaskName IronAgentDailyMaintenance`.
+12. Confirm Codex automation is active when available.
+13. Run `system/scripts/health_check.py`.

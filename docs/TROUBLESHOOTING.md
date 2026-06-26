@@ -34,7 +34,7 @@ iron check .
 | Domain agent not routed | No matching keywords or pack | Inspect domain index | `Get-Content packs/domain-agents/INDEX.md` |
 | Schema validation fails | Required file missing | Restore required files | `iron check . --json` |
 | Wiki and memory conflict | Content stored in both places | Follow boundary document | `Get-Content wiki/_schema.md` |
-| Dashboard does not open | Web UI is planned for v0.3.0 | Use CLI for v0.2.0 | `iron task list .` |
+| Dashboard does not open | Local port is occupied or browser launch failed | Start with another port or use CLI | `iron web . --port 8766` |
 | Starter pack fails | Starter packs are planned for v0.3.0 | Use current examples | `Get-ChildItem examples` |
 | Evolution threshold is unclear | Threshold config is planned for v0.3.0 | Use report recommendations | `iron report .` |
 | CI fails on `iron check` | Manifest required files missing | Read missing list | `iron check .` |

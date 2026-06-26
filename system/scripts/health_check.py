@@ -27,6 +27,7 @@ REQUIRED = [
     "workspace/meta/active-context.md",
     "workspace/meta/friction-log.md",
     "workspace/meta/memory.md",
+    "workspace/meta/user-rules.md",
     "workspace/meta/task-log.jsonl",
     "system/skills/initial-install.md",
     "system/skills/codex-agent.md",

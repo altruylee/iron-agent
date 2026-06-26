@@ -295,6 +295,7 @@ def capture(
     title: Optional[str] = typer.Option(None, "--title", help="Short title for this capture."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview extraction without writing files."),
     no_maintenance: bool = typer.Option(False, "--no-maintenance", help="Skip daily maintenance after capture."),
+    keep_source: bool = typer.Option(False, "--keep-source", help="Keep the source chat file after successful capture."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
 ) -> None:
     """Manually extract stable memory candidates from user-provided conversation text."""
@@ -321,6 +322,11 @@ def capture(
                 "stdout": maintenance_result.stdout.strip(),
                 "stderr": maintenance_result.stderr.strip(),
             }
+        if not dry_run and not text and not keep_source and file_path.exists():
+            file_path.unlink()
+            result["source_removed"] = str(file_path)
+        else:
+            result["source_removed"] = ""
     except Exception as exc:
         fail(str(exc), json_output)
     if json_output:
@@ -332,6 +338,8 @@ def capture(
     if result["memory_candidates"]:
         typer.echo(f"Memory candidate review: {result['memory_candidates']}")
     typer.echo("Raw chat text was not stored.")
+    if result.get("source_removed"):
+        typer.echo(f"Source chat file removed: {result['source_removed']}")
     if not dry_run and not no_maintenance:
         maintenance = result.get("maintenance") or {}
         typer.echo("Daily maintenance: OK" if maintenance.get("returncode") == 0 else "Daily maintenance: FAILED")
@@ -371,12 +379,63 @@ def update(
     typer.echo(f"Preserved user files: {result['preserved_count']}")
     if not dry_run:
         typer.echo("Health check: OK" if result["ok"] else "Health check: FAILED")
+        typer.echo(f"install_status: {result['install_status']}")
+        if result["install_status_fixed"]:
+            typer.echo("install_status repaired by iron update")
         if result["agent_refresh_request"]:
             typer.echo(f"Agent refresh request: {result['agent_refresh_request']}")
         if result["agent_refresh_instruction"]:
             typer.echo("Current chat refresh prompt:")
             typer.echo(result["agent_refresh_instruction"])
         typer.echo("Next: python system/scripts/daily_maintenance.py --root . --force")
+
+
+@app.command("index")
+def index_memory(
+    root: Path = typer.Argument(Path("."), help="Iron Agent root."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Rebuild the local semantic memory index."""
+    root_path = resolve_root(root)
+    script = root_path / "system" / "scripts" / "memory_router.py"
+    cmd = [sys.executable, str(script), "--root", str(root_path), "--rebuild-index"]
+    if json_output:
+        cmd.append("--json")
+    result = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+    if result.returncode != 0:
+        raise typer.Exit(result.returncode)
+
+
+@app.command("route")
+def route(
+    task: str = typer.Argument(..., help="Task or topic text."),
+    root: Path = typer.Option(Path("."), "--root", help="Iron Agent root."),
+    limit: int = typer.Option(5, "--limit", "--top-k", help="Maximum memory paths."),
+    include_cold: bool = typer.Option(False, "--include-cold", help="Allow cold archive hits."),
+    no_semantic: bool = typer.Option(False, "--no-semantic", help="Use keyword routing only."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Route a task to the smallest relevant memory paths."""
+    root_path = resolve_root(root)
+    script = root_path / "system" / "scripts" / "memory_router.py"
+    cmd = [sys.executable, str(script), "--root", str(root_path), "--task", task, "--limit", str(limit)]
+    if not no_semantic:
+        cmd.append("--semantic")
+    if include_cold:
+        cmd.append("--include-cold")
+    if json_output:
+        cmd.append("--json")
+    result = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+    if result.returncode != 0:
+        raise typer.Exit(result.returncode)
 
 
 @app.command()
@@ -397,10 +456,27 @@ def memory_route(
     task: str = typer.Argument(..., help="Task or topic text."),
     limit: int = typer.Option(5, "--limit", help="Maximum memory paths."),
     include_cold: bool = typer.Option(False, "--include-cold", help="Allow cold archive hits."),
+    semantic: bool = typer.Option(False, "--semantic", help="Use local semantic index before keyword fallback."),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
 ) -> None:
     """Return the smallest relevant memory paths for a task."""
-    paths = route_memory(task, resolve_root(root), limit=limit, include_cold=include_cold)
+    root_path = resolve_root(root)
+    if semantic:
+        script = root_path / "system" / "scripts" / "memory_router.py"
+        cmd = [sys.executable, str(script), "--root", str(root_path), "--task", task, "--limit", str(limit), "--semantic"]
+        if include_cold:
+            cmd.append("--include-cold")
+        if json_output:
+            cmd.append("--json")
+        result = subprocess.run(cmd, text=True, capture_output=True, check=False)
+        if result.stdout:
+            typer.echo(result.stdout.rstrip())
+        if result.stderr:
+            typer.echo(result.stderr.rstrip(), err=True)
+        if result.returncode != 0:
+            raise typer.Exit(result.returncode)
+        return
+    paths = route_memory(task, root_path, limit=limit, include_cold=include_cold)
     if json_output:
         emit({"paths": paths, "matched": bool(paths)}, True)
     elif paths:

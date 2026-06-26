@@ -6,6 +6,7 @@
 - [Live Conversation Flow](#live-conversation-flow)
 - [Routing Hit](#routing-hit)
 - [Routing Miss](#routing-miss)
+- [Candidate And Conflict Policy](#candidate-and-conflict-policy)
 - [Nightly Organization](#nightly-organization)
 - [User Value](#user-value)
 
@@ -19,7 +20,7 @@ they understand the user better.
 
 ```text
 User request
--> run memory_router.py
+-> run memory_router.py --semantic
 -> hit: read 1-5 prompt/rule/SOP paths
 -> apply those paths as an overlay to the user request
 -> model answers or acts
@@ -46,6 +47,15 @@ When routing returns no paths:
 3. Answer or act normally.
 4. Log concise candidates only when they may help future tasks.
 
+## Candidate And Conflict Policy
+
+- Candidate memory does not require approval.
+- Daily maintenance displays candidates so the user can judge them later.
+- Unwanted candidates can be deleted or corrected on request.
+- Potential conflicts do not block work.
+- The latest stable rule or candidate wins by default.
+- Daily maintenance displays conflict pairs and the latest-wins decision.
+
 ## Nightly Organization
 
 Nightly maintenance runs outside normal conversation:
@@ -53,6 +63,9 @@ Nightly maintenance runs outside normal conversation:
 - groups repeated user preferences into rules,
 - turns repeated workflows into SOPs,
 - updates `workspace/memory/index.json`,
+- updates `workspace/memory/semantic_index.jsonl`,
+- updates `workspace/memory/semantic_vectors.jsonl`,
+- displays candidates and potential conflicts,
 - moves stale entries from hot to warm or cold,
 - keeps top-level indexes short,
 - reports what changed to the user.

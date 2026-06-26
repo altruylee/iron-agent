@@ -17,12 +17,15 @@ For every task:
    final result after everything necessary is clear.
 2. Check `AGENTS.md` installation state.
 3. Read `workspace/workspace-config.md`.
-4. For accumulated prompts/rules/SOPs, run `python system/scripts/memory_router.py --task "<task>"`.
-5. If paths are returned, read only those paths and apply them as an overlay to
+4. Read `workspace/meta/user-rules.md` if it exists.
+5. For accumulated prompts/rules/SOPs, run `python system/scripts/memory_router.py --task "<task>" --semantic`.
+6. If paths are returned, read only those paths and apply them as an overlay to
    the user's request.
-6. If no paths are returned, treat the request as new content and continue normally.
-7. Daily maintenance consolidates today's workspace traces through
+7. If no paths are returned, treat the request as new content and continue normally.
+8. Daily maintenance consolidates today's workspace traces through
    `system/skills/daily-conversation-consolidation.md`.
+9. If the user types `iron capture`, summarize only currently visible context
+   into `today-chat.md`, then run `iron capture`.
 
 ## Memory
 
@@ -37,11 +40,13 @@ Silent consolidation policy:
 - Daily maintenance consolidates the day's workspace traces.
 - Do not save full chat history; preserve only stable preferences, rules, SOPs,
   project facts, and unfinished context.
+- `iron capture` in chat means capture currently visible context into
+  `today-chat.md` first; it does not grant access to full platform transcripts.
 
 Default command:
 
 ```bash
-python system/scripts/memory_router.py --task "<task>"
+python system/scripts/memory_router.py --task "<task>" --semantic
 ```
 
 ## Rules
@@ -51,4 +56,5 @@ python system/scripts/memory_router.py --task "<task>"
 - Do not store secrets.
 - Do not bypass P0-P3 permission tiers in `system/skills/codex-agent.md`.
 - Do not save full chat history; daily maintenance consolidates only workspace traces.
-- Nightly maintenance organizes new candidates and reports what changed.
+- Nightly maintenance displays new candidates and potential conflicts; it does
+  not wait for approval. The latest stable rule or candidate wins by default.

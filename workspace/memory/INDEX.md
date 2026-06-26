@@ -20,5 +20,5 @@
 ## Rules
 
 - This file is routing only; no memory content.
-- Run `python system/scripts/memory_router.py --task "<task>"` before reading memory.
+- Run `python system/scripts/memory_router.py --task "<task>" --semantic` before reading memory.
 - Read only returned paths, then leaf SOPs or fragments.

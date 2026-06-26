@@ -3,6 +3,7 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.4.0](#040)
 - [0.3.9](#039)
 - [0.3.8](#038)
 - [0.3.7](#037)
@@ -14,6 +15,15 @@
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.4.0
+
+- Added local semantic memory routing through `semantic_index.jsonl` and `semantic_vectors.jsonl`.
+- Added `iron route` and `iron index` commands.
+- Added daily semantic index rebuilds during maintenance.
+- Added daily candidate memory display without approval blocking.
+- Added potential conflict display with latest-candidate-wins default policy.
+- Updated Codex, Claude Code, and WorkBuddy adapters to use semantic-first routing.
 
 ## 0.3.9
 

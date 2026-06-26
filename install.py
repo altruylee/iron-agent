@@ -21,6 +21,10 @@ EXCLUDE_PREFIXES = {
     "workspace/meta/scheduled-task-state.json",
     "workspace/meta/codex-automation-state.md",
     "workspace/meta/codex-automation-trigger.json",
+    "workspace/meta/semantic-cache.json",
+    "workspace/meta/token-cache.json",
+    "workspace/memory/semantic_index.jsonl",
+    "workspace/memory/semantic_vectors.jsonl",
 }
 
 RUNTIME_DIRS = [
@@ -48,6 +52,7 @@ RUNTIME_DIRS = [
 
 RUNTIME_FILES = [
     "workspace/meta/task-log.jsonl",
+    "workspace/meta/user-rules.md",
 ]
 
 

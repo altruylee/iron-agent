@@ -42,6 +42,7 @@ RUNTIME_DIRS = [
 
 RUNTIME_FILES = [
     "workspace/meta/task-log.jsonl",
+    "workspace/meta/user-rules.md",
 ]
 
 TEMPLATE_ROOT = PACK_ROOT / "templates"
@@ -67,6 +68,10 @@ EXCLUDE_PREFIXES = {
     "workspace/meta/codex-automation-state.md",
     "workspace/meta/codex-automation-trigger.json",
     "workspace/meta/package-registry.json",
+    "workspace/meta/semantic-cache.json",
+    "workspace/meta/token-cache.json",
+    "workspace/memory/semantic_index.jsonl",
+    "workspace/memory/semantic_vectors.jsonl",
 }
 
 UPDATE_PRESERVE_PREFIXES = [
@@ -127,21 +132,36 @@ SECRET_PATTERNS = [
 ]
 
 
-def load_memory_index(root: Path) -> dict[str, list[str]]:
+def normalize_memory_entry(value: object) -> dict[str, Any]:
+    if isinstance(value, list):
+        return {"paths": [str(path) for path in value], "aliases": [], "tier": "warm"}
+    if isinstance(value, dict):
+        paths = value.get("paths", [])
+        aliases = value.get("aliases", [])
+        return {
+            "paths": [str(path) for path in paths] if isinstance(paths, list) else [],
+            "aliases": [str(alias) for alias in aliases] if isinstance(aliases, list) else [],
+            "tier": str(value.get("tier", "warm")),
+        }
+    return {"paths": [], "aliases": [], "tier": "warm"}
+
+
+def load_memory_index(root: Path) -> dict[str, dict[str, Any]]:
     index_path = root / "workspace" / "memory" / "index.json"
     if not index_path.exists():
-        return {key: value["paths"] for key, value in TOPICS.items()}
+        return {key: {"paths": value["paths"], "aliases": value.get("keywords", []), "tier": "hot"} for key, value in TOPICS.items()}
     data = json.loads(index_path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         return {}
-    result: dict[str, list[str]] = {}
-    for topic, paths in data.items():
-        if isinstance(paths, list):
-            result[str(topic)] = [str(path) for path in paths]
+    result: dict[str, dict[str, Any]] = {}
+    for topic, value in data.items():
+        entry = normalize_memory_entry(value)
+        if entry["paths"]:
+            result[str(topic)] = entry
     return result
 
 
-def score_memory_topic(task: str, topic: str) -> int:
+def score_memory_topic(task: str, topic: str, aliases: list[str] | None = None, tier: str = "warm") -> int:
     lowered = task.lower()
     score = 0
     if topic.lower() in lowered:
@@ -149,9 +169,21 @@ def score_memory_topic(task: str, topic: str) -> int:
     for token in topic.lower().replace("-", " ").split():
         if token and token in lowered:
             score += 2
+    for alias in aliases or []:
+        alias_lower = alias.lower()
+        if alias_lower and alias_lower in lowered:
+            score += 8
+        for token in alias_lower.replace("-", " ").split():
+            if token and token in lowered:
+                score += 2
     for char in topic:
         if "\u4e00" <= char <= "\u9fff" and char in task:
             score += 1
+    matched = score > 0
+    if matched and tier == "hot":
+        score += 2
+    elif matched and tier == "cold":
+        score -= 2
     return score
 
 
@@ -463,6 +495,7 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
 
+    install_status_fixed = patch_install_status(root, 1, installer_agent="iron-update") if apply else False
     refresh_path = write_agent_refresh_request(root, source_root, updated) if apply else None
     result = check_workspace(root) if apply else None
     return {
@@ -471,6 +504,8 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
         "root": str(root),
         "source": str(source_root),
         "backup": str(archive) if archive else "",
+        "install_status": read_install_status(root) if apply else None,
+        "install_status_fixed": install_status_fixed,
         "agent_refresh_request": str(refresh_path) if refresh_path else "",
         "agent_refresh_instruction": "请重新读取本 workspace 的 AGENTS.md；如果你是 Claude Code，请重新读取 CLAUDE.md；如果你是 WorkBuddy，请重新读取 WORKBUDDY.md。之后按新的 Iron Agent 规则继续当前任务。" if apply else "",
         "updated_count": len(updated),
@@ -648,7 +683,14 @@ def read_task_entries(root: Path) -> list[dict[str, Any]]:
 def route_memory(task: str, root: Path, limit: int = 5, include_cold: bool = False) -> list[str]:
     index = load_memory_index(root)
     ranked = sorted(
-        ((topic, score_memory_topic(task, topic), paths) for topic, paths in index.items()),
+        (
+            (
+                topic,
+                score_memory_topic(task, topic, entry.get("aliases", []), entry.get("tier", "warm")),
+                entry.get("paths", []),
+            )
+            for topic, entry in index.items()
+        ),
         key=lambda item: item[1],
         reverse=True,
     )

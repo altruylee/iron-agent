@@ -10,6 +10,7 @@ task logs, and durable memory.
 - [Read Path From Here](#read-path-from-here)
 - [Token Saving Rules](#token-saving-rules)
 - [Prompt And Rule Overlay](#prompt-and-rule-overlay)
+- [Memory Evolution Policy](#memory-evolution-policy)
 - [Domain Agent Rules](#domain-agent-rules)
 - [Permission Levels](#permission-levels)
 - [Communication Rules](#communication-rules)
@@ -118,7 +119,7 @@ Default memory read flow:
 1. Route the task:
 
 ```bash
-python system/scripts/memory_router.py --root . --task "{user task}"
+python system/scripts/memory_router.py --root . --task "{user task}" --semantic
 ```
 
 2. If paths are returned, read only those topic files.
@@ -139,6 +140,18 @@ SOP promotion is async:
 - Daily maintenance and shadow review organize daily conversation traces into
   prompts, rules, SOPs, and directory entries outside the live response path.
 - Maintenance output should tell the user what was organized.
+
+## Memory Evolution Policy
+
+- Do not ask for approval before listing memory candidates.
+- During live work, leave concise structured traces only when useful.
+- Daily maintenance displays candidates for user review.
+- The user can later ask to delete, correct, or merge unwanted candidates.
+- Potential memory conflicts do not block normal work or maintenance.
+- The latest stable rule or candidate has priority by default.
+- Daily maintenance must surface conflict pairs and the default latest-wins
+  decision so the user can judge.
+- Do not run behavior evaluation suites as part of the default workflow.
 
 ## Domain Agent Rules
 

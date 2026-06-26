@@ -15,6 +15,7 @@
 - [Daily Use Model](#daily-use-model)
 - [Silent Automation](#silent-automation)
 - [Memory Model](#memory-model)
+- [Semantic Routing](#semantic-routing)
 - [Automation](#automation)
 - [Release Safety](#release-safety)
 
@@ -89,6 +90,9 @@ python system/scripts/daily_maintenance.py --root . --force
 chat cannot be force-reloaded by the CLI, so paste or follow the printed refresh
 prompt in the current conversation after updating.
 
+After updating, `iron update` also repairs `AGENTS.md` back to
+`install_status: 1` so an active workspace is not treated as a fresh install.
+
 `{new-pack-path}` is the folder that contains the newer Iron Agent release, for
 example the cloned GitHub repo or a freshly downloaded release folder.
 
@@ -138,10 +142,12 @@ The full sample is in `examples/end-to-end-demo/`.
 | `iron init <target>` | Copy a workspace and keep `install_status` at `0` for onboarding |
 | `iron update <root> --source <new-pack>` | Update an existing workspace while preserving user data |
 | `iron capture` | Extract `today-chat.md` candidates and run daily maintenance |
+| `iron route "<task>"` | Route a task with local semantic routing, then keyword fallback |
+| `iron index <root>` | Rebuild local semantic memory indexes |
 | `iron check <root>` | Validate manifest and release safety |
 | `iron doctor <root> --fix` | Diagnose and repair reversible setup issues |
 | `iron report <root>` | Generate an evolution report |
-| `iron memory route <root> <task>` | Find the smallest relevant memory read path |
+| `iron memory route <root> <task> --semantic` | Find the smallest relevant memory read path |
 | `iron memory slim <root>` | Check low-token memory index limits |
 | `iron task list <root>` | Inspect task-log entries |
 | `iron web <root> --port 8765` | Start the local dashboard |
@@ -239,6 +245,12 @@ normal conversation the model first routes the request. If a route is found, it
 layers the matching prompts/rules onto the user's request. If no route is found,
 it continues normally and leaves concise candidates for nightly organization.
 
+Candidate memory does not require approval. Daily maintenance displays new
+candidates for user inspection; unwanted entries can be deleted or corrected
+later. Potential conflicts do not block the system. The newest stable rule or
+candidate wins by default, and the conflict is shown in the daily maintenance
+report for user judgment.
+
 Manual capture is available when the user wants to actively consolidate a
 conversation:
 
@@ -256,10 +268,20 @@ python system/scripts/daily_maintenance.py --root . --force
 
 It does not store the full chat text. Advanced usage:
 
+When the user types `iron capture` inside an agent chat, the agent should first
+summarize only currently visible context into `today-chat.md`, then run
+`iron capture`. This does not provide access to the platform's full official
+transcript unless that transcript was exported into the workspace.
+
+After successful capture, the source chat file is removed by default so full
+chat text does not remain in the workspace. Use `--keep-source` only when raw
+input retention is intentional.
+
 ```powershell
 iron capture . --file .\chat.md --title "today's planning"
 iron capture . --text "以后默认先问清楚模糊需求。"
 iron capture . --file .\chat.md --no-maintenance
+iron capture . --file .\chat.md --keep-source
 ```
 
 See `docs/daily-use-model.md`.
@@ -274,7 +296,39 @@ Memory is split into:
 | Episode | `workspace/memory/episodes/` |
 | Semantic SOP | `workspace/memory/semantic/sops/` |
 
-Use `python system/scripts/memory_router.py --task "<task>"` before reading memory.
+Use `iron route "<task>"` or
+`python system/scripts/memory_router.py --task "<task>" --semantic` before
+reading memory.
+
+## Semantic Routing
+
+Iron Agent keeps semantic routing local and low-token. Daily maintenance builds
+short summary indexes instead of reading full memory files during live work:
+
+| File | Purpose |
+|---|---|
+| `workspace/memory/semantic_index.jsonl` | Short summaries of leaf memory files |
+| `workspace/memory/semantic_vectors.jsonl` | Local sparse vectors generated from those summaries |
+| `workspace/meta/semantic-cache.json` | mtime/size cache so unchanged files are not reprocessed |
+
+Daily maintenance runs:
+
+```bash
+python system/scripts/memory_router.py --root . --rebuild-index
+```
+
+Manual usage:
+
+```bash
+iron index .
+iron route "发布新版到 GitHub"
+iron memory route . "发布新版到 GitHub" --semantic
+```
+
+The router scores semantic similarity, alias matches, and hot/warm/cold tier,
+then returns only the top few paths. If the semantic files are missing or
+damaged, keyword routing through `workspace/memory/index.json` remains the
+fallback.
 
 ## Automation
 

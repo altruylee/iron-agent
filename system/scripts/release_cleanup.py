@@ -26,6 +26,10 @@ STATE_FILES = [
     "workspace/meta/codex-automation-state.md",
     "workspace/meta/codex-automation-trigger.json",
     "workspace/meta/package-registry.json",
+    "workspace/meta/semantic-cache.json",
+    "workspace/meta/token-cache.json",
+    "workspace/memory/semantic_index.jsonl",
+    "workspace/memory/semantic_vectors.jsonl",
 ]
 
 

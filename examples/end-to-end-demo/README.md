@@ -8,7 +8,7 @@
 
 ## Purpose
 
-This demo shows the v0.2.0 value path: initialize a workspace, record task friction, and generate an evolution report.
+This demo shows the Iron Agent value path: initialize a workspace, record task friction, route memory, and generate an evolution report.
 
 ## Reproduce
 

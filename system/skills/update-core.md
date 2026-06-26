@@ -40,6 +40,9 @@ iron update . --source {new-pack-path}
 current chat to reread `AGENTS.md`, `CLAUDE.md`, or `WORKBUDDY.md` because a
 running model context cannot be force-reloaded by file copy alone.
 
+After copying core files, `iron update` repairs `AGENTS.md` to
+`install_status: 1` so an existing workspace does not re-enter first-use setup.
+
 Preview first:
 
 ```bash
