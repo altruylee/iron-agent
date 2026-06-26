@@ -368,6 +368,24 @@ def should_preserve_update(rel: str) -> bool:
     return any(rel == prefix or rel.startswith(f"{prefix}/") for prefix in UPDATE_PRESERVE_PREFIXES)
 
 
+def ensure_runtime_files(root: Path, source_root: Path, apply: bool = True) -> list[str]:
+    created: list[str] = []
+    for rel in RUNTIME_FILES:
+        target = root / rel_path(rel)
+        if target.exists():
+            continue
+        created.append(rel)
+        if not apply:
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        source = source_root / rel_path(rel)
+        if source.exists():
+            shutil.copy2(source, target)
+        else:
+            target.touch()
+    return created
+
+
 def copy_pack(source: Path, target: Path, overwrite: bool) -> None:
     if target == source or source in target.parents:
         raise ValueError("Target must be outside the source Iron Agent repository.")
@@ -495,6 +513,7 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
 
+    repaired_runtime_files = ensure_runtime_files(root, source_root, apply=apply)
     install_status_fixed = patch_install_status(root, 1, installer_agent="iron-update") if apply else False
     refresh_path = write_agent_refresh_request(root, source_root, updated) if apply else None
     result = check_workspace(root) if apply else None
@@ -510,6 +529,7 @@ def update_workspace(root: Path, source: Path | None = None, apply: bool = True,
         "agent_refresh_instruction": "请重新读取本 workspace 的 AGENTS.md；如果你是 Claude Code，请重新读取 CLAUDE.md；如果你是 WorkBuddy，请重新读取 WORKBUDDY.md。之后按新的 Iron Agent 规则继续当前任务。" if apply else "",
         "updated_count": len(updated),
         "preserved_count": len(preserved),
+        "repaired_runtime_files": repaired_runtime_files,
         "updated": updated,
         "preserved": preserved,
         "check": result,

@@ -16,7 +16,7 @@ From zero to your first evolution report in 5 minutes.
 
 | Time | Step | Expected result |
 |---:|---|---|
-| 0:00 | Install CLI | `iron --version` prints `0.4.0` |
+| 0:00 | Install CLI | `iron --version` prints `0.4.1` |
 | 1:00 | Initialize workspace | `install_status` becomes `1` |
 | 2:00 | Run doctor | No `FAIL` checks |
 | 3:00 | Generate report | Markdown report appears under `output/evolution/` |

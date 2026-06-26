@@ -3,6 +3,7 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.4.1](#041)
 - [0.4.0](#040)
 - [0.3.9](#039)
 - [0.3.8](#038)
@@ -15,6 +16,11 @@
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.4.1
+
+- Fixed `iron update` for existing workspaces that predate `workspace/meta/user-rules.md`.
+- Update now repairs missing runtime template files without overwriting existing user data.
 
 ## 0.4.0
 

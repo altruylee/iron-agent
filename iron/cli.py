@@ -377,6 +377,8 @@ def update(
         typer.echo(f"Backup: {result['backup']}")
     typer.echo(f"Core files: {result['updated_count']}")
     typer.echo(f"Preserved user files: {result['preserved_count']}")
+    if result.get("repaired_runtime_files"):
+        typer.echo(f"Repaired missing runtime files: {', '.join(result['repaired_runtime_files'])}")
     if not dry_run:
         typer.echo("Health check: OK" if result["ok"] else "Health check: FAILED")
         typer.echo(f"install_status: {result['install_status']}")
