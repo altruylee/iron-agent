@@ -137,6 +137,7 @@ The full sample is in `examples/end-to-end-demo/`.
 |---|---|
 | `iron init <target>` | Copy a workspace and keep `install_status` at `0` for onboarding |
 | `iron update <root> --source <new-pack>` | Update an existing workspace while preserving user data |
+| `iron capture` | Extract `today-chat.md` candidates and run daily maintenance |
 | `iron check <root>` | Validate manifest and release safety |
 | `iron doctor <root> --fix` | Diagnose and repair reversible setup issues |
 | `iron report <root>` | Generate an evolution report |
@@ -237,6 +238,29 @@ Iron Agent stores accumulated prompts, rules, SOPs, and user preferences. During
 normal conversation the model first routes the request. If a route is found, it
 layers the matching prompts/rules onto the user's request. If no route is found,
 it continues normally and leaves concise candidates for nightly organization.
+
+Manual capture is available when the user wants to actively consolidate a
+conversation:
+
+```powershell
+iron capture
+```
+
+By default, this reads `today-chat.md` in the current workspace, uses
+`YYYY-MM-DD daily chat` as the title, extracts only stable preferences, rules,
+SOP candidates, project facts, and unfinished context, then runs:
+
+```powershell
+python system/scripts/daily_maintenance.py --root . --force
+```
+
+It does not store the full chat text. Advanced usage:
+
+```powershell
+iron capture . --file .\chat.md --title "today's planning"
+iron capture . --text "以后默认先问清楚模糊需求。"
+iron capture . --file .\chat.md --no-maintenance
+```
 
 See `docs/daily-use-model.md`.
 

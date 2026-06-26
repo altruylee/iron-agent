@@ -39,6 +39,26 @@ Platform chat transcripts are used only if the platform has already exported
 them into the workspace. Iron Agent does not assume access to separate Codex,
 Claude Code, or WorkBuddy conversations.
 
+For user-initiated consolidation, run:
+
+```bash
+iron capture
+```
+
+By default, this reads `today-chat.md`, uses `YYYY-MM-DD daily chat` as the
+title, extracts only stable preferences, rules, SOP candidates, project facts,
+and unfinished context, and then runs daily maintenance with `--force`.
+
+Advanced usage:
+
+```bash
+iron capture . --file chat.md --title "manual capture"
+iron capture . --text "stable preference or rule"
+iron capture . --file chat.md --no-maintenance
+```
+
+The command does not store the full chat text.
+
 ## Output
 
 Write:

@@ -112,6 +112,20 @@ TOPICS = {
     },
 }
 
+CAPTURE_KEYWORDS = {
+    "preference": ["我希望", "我喜欢", "以后", "默认", "偏好", "prefer", "default"],
+    "rule": ["必须", "不要", "不能", "规则", "原则", "每次", "always", "never", "must", "should"],
+    "sop": ["流程", "步骤", "SOP", "先", "然后", "最后", "workflow", "process"],
+    "project_fact": ["项目", "路径", "目录", "仓库", "workspace", "repo", "project", "path"],
+    "continuation": ["未完成", "继续", "下次", "待办", "blocked", "todo", "continue"],
+}
+
+SECRET_PATTERNS = [
+    re.compile(r"(?i)(api[_-]?key|token|secret|password|passwd|cookie)\s*[:=]"),
+    re.compile(r"(?i)bearer\s+[a-z0-9._-]{16,}"),
+    re.compile(r"(?i)sk-[a-z0-9_-]{20,}"),
+]
+
 
 def load_memory_index(root: Path) -> dict[str, list[str]]:
     index_path = root / "workspace" / "memory" / "index.json"
@@ -164,6 +178,151 @@ def resolve_root(root: str | Path) -> Path:
 def ensure_iron_root(root: Path) -> None:
     if not (root / "AGENTS.md").exists() or not (root / "manifest.json").exists():
         raise ValueError(f"Not an Iron Agent root: {root}")
+
+
+def has_secret_like_text(text: str) -> bool:
+    return any(pattern.search(text) for pattern in SECRET_PATTERNS)
+
+
+def classify_capture_line(line: str) -> str | None:
+    lowered = line.lower()
+    if "sop" in lowered:
+        return "sop"
+    for category, keywords in CAPTURE_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword.lower() in lowered:
+                return category
+    return None
+
+
+def extract_capture_candidates(text: str, limit: int = 50) -> dict[str, list[str]]:
+    buckets = {category: [] for category in CAPTURE_KEYWORDS}
+    seen: set[str] = set()
+    for raw in re.split(r"[\n。！？!?；;]+", text):
+        line = raw.strip().strip("-*`> ")
+        if not line or len(line) < 6 or len(line) > 240:
+            continue
+        if has_secret_like_text(line):
+            continue
+        category = classify_capture_line(line)
+        if not category:
+            continue
+        normalized = re.sub(r"\s+", " ", line)
+        key = normalized.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        buckets[category].append(normalized)
+        if sum(len(items) for items in buckets.values()) >= limit:
+            break
+    return buckets
+
+
+def flatten_candidates(buckets: dict[str, list[str]]) -> list[str]:
+    result: list[str] = []
+    for category in ["preference", "rule", "sop", "project_fact", "continuation"]:
+        result.extend(buckets.get(category, []))
+    return result
+
+
+def append_task_log_entry(root: Path, entry: dict[str, Any]) -> Path:
+    log_path = root / "workspace" / "meta" / "task-log.jsonl"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return log_path
+
+
+def append_memory_candidate_review(root: Path, candidates: list[str], digest_path: Path) -> Path:
+    review_path = root / "workspace" / "meta" / "memory-candidates.md"
+    review_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = review_path.read_text(encoding="utf-8", errors="replace") if review_path.exists() else ""
+    lines = [
+        "",
+        "## Manual Capture Candidates",
+        "",
+        f"- Source digest: `{digest_path.relative_to(root).as_posix()}`",
+        *[f"- {item}" for item in candidates],
+        "",
+    ]
+    review_path.write_text(existing.rstrip() + "\n" + "\n".join(lines), encoding="utf-8")
+    return review_path
+
+
+def capture_conversation(root: Path, text: str, title: str = "Manual conversation capture", apply: bool = True) -> dict[str, Any]:
+    ensure_iron_root(root)
+    now = datetime.now(timezone.utc).astimezone()
+    buckets = extract_capture_candidates(text)
+    candidates = flatten_candidates(buckets)
+    report_dir = root / "output" / "maintenance"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    digest_path = report_dir / f"{now.date().isoformat()}-manual-capture-{now.strftime('%H%M%S')}.md"
+    task_log_path = root / "workspace" / "meta" / "task-log.jsonl"
+    review_path = root / "workspace" / "meta" / "memory-candidates.md"
+
+    body = [
+        "# Manual Conversation Capture",
+        "",
+        "## Directory",
+        "",
+        "- [Summary](#summary)",
+        "- [Stable Preferences](#stable-preferences)",
+        "- [Rules](#rules)",
+        "- [SOP Candidates](#sop-candidates)",
+        "- [Project Facts](#project-facts)",
+        "- [Continuation](#continuation)",
+        "",
+        "## Summary",
+        "",
+        f"- Time: `{now.isoformat(timespec='seconds')}`",
+        f"- Title: `{title}`",
+        f"- Candidates: `{len(candidates)}`",
+        "- Raw chat text was not stored; only extracted candidate lines are written.",
+        "",
+    ]
+    sections = [
+        ("Stable Preferences", "preference"),
+        ("Rules", "rule"),
+        ("SOP Candidates", "sop"),
+        ("Project Facts", "project_fact"),
+        ("Continuation", "continuation"),
+    ]
+    for heading, key in sections:
+        body.extend([f"## {heading}", ""])
+        items = buckets.get(key, [])
+        body.extend([f"- {item}" for item in items] or ["- No stable candidates detected."])
+        body.append("")
+
+    if apply:
+        digest_path.write_text("\n".join(body), encoding="utf-8")
+        if candidates:
+            review_path = append_memory_candidate_review(root, candidates, digest_path)
+        entry = {
+            "time": now.isoformat(timespec="seconds"),
+            "task": title,
+            "type": "memory",
+            "permission": "P1",
+            "read": [],
+            "written": [digest_path.relative_to(root).as_posix(), task_log_path.relative_to(root).as_posix()],
+            "commands": ["iron capture"],
+            "verification": "manual capture extracted stable candidates only; raw chat text not stored",
+            "memory_candidates": candidates,
+            "friction": [],
+        }
+        if candidates:
+            entry["written"].append(review_path.relative_to(root).as_posix())
+        append_task_log_entry(root, entry)
+
+    return {
+        "ok": True,
+        "applied": apply,
+        "root": str(root),
+        "digest": str(digest_path),
+        "task_log": str(task_log_path),
+        "memory_candidates": str(review_path) if candidates else "",
+        "candidate_count": len(candidates),
+        "candidates": buckets,
+    }
 
 
 def should_skip_copy(src_root: Path, path: Path) -> bool:

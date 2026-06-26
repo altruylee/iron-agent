@@ -3,6 +3,7 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.3.9](#039)
 - [0.3.8](#038)
 - [0.3.7](#037)
 - [0.3.6](#036)
@@ -13,6 +14,11 @@
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.3.9
+
+- Added `iron capture` default one-command daily chat consolidation from `today-chat.md`.
+- Added automatic daily maintenance after manual capture.
 
 ## 0.3.8
 

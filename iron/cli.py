@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +19,7 @@ from .core import (
     automation_status,
     check_workspace,
     clean_workspace,
+    capture_conversation,
     create_backup,
     doctor_checks,
     evolution_candidates,
@@ -283,6 +285,60 @@ def backup(
     except Exception as exc:
         fail(str(exc), json_output)
     emit({"archive": str(archive)} if json_output else str(archive), json_output)
+
+
+@app.command()
+def capture(
+    root: Path = typer.Argument(Path("."), help="Iron Agent root."),
+    file: Optional[Path] = typer.Option(None, "--file", help="Chat transcript or notes file to extract candidates from."),
+    text: Optional[str] = typer.Option(None, "--text", help="Inline text to extract candidates from."),
+    title: Optional[str] = typer.Option(None, "--title", help="Short title for this capture."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview extraction without writing files."),
+    no_maintenance: bool = typer.Option(False, "--no-maintenance", help="Skip daily maintenance after capture."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output."),
+) -> None:
+    """Manually extract stable memory candidates from user-provided conversation text."""
+    root_path = resolve_root(root)
+    default_file = root_path / "today-chat.md"
+    file_path = file.resolve() if file else default_file
+    capture_title = title or f"{datetime.now().date().isoformat()} daily chat"
+    if not text and not file_path.exists():
+        fail(f"Default capture file not found: {file_path}. Create today-chat.md or use --file/--text.", json_output)
+    try:
+        content = text or file_path.read_text(encoding="utf-8", errors="replace")
+        result = capture_conversation(root_path, content, title=capture_title, apply=not dry_run)
+        maintenance_result = None
+        if not dry_run and not no_maintenance:
+            maintenance_script = root_path / "system" / "scripts" / "daily_maintenance.py"
+            maintenance_result = subprocess.run(
+                [sys.executable, str(maintenance_script), "--root", str(root_path), "--force"],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result["maintenance"] = {
+                "returncode": maintenance_result.returncode,
+                "stdout": maintenance_result.stdout.strip(),
+                "stderr": maintenance_result.stderr.strip(),
+            }
+    except Exception as exc:
+        fail(str(exc), json_output)
+    if json_output:
+        emit(result, True)
+        return
+    action = "previewed" if dry_run else "captured"
+    typer.echo(f"Conversation {action}: {result['digest']}")
+    typer.echo(f"Stable candidates: {result['candidate_count']}")
+    if result["memory_candidates"]:
+        typer.echo(f"Memory candidate review: {result['memory_candidates']}")
+    typer.echo("Raw chat text was not stored.")
+    if not dry_run and not no_maintenance:
+        maintenance = result.get("maintenance") or {}
+        typer.echo("Daily maintenance: OK" if maintenance.get("returncode") == 0 else "Daily maintenance: FAILED")
+        if maintenance.get("stdout"):
+            typer.echo(maintenance["stdout"])
+        if maintenance.get("stderr"):
+            typer.echo(maintenance["stderr"])
 
 
 @app.command()
