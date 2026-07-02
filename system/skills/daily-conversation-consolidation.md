@@ -53,6 +53,9 @@ If the user types `iron capture` inside an agent chat, the agent must first
 write `today-chat.md` from currently visible context only, without copying the
 full transcript, and then run `iron capture`.
 
+After reporting the capture result, send `/compact` as the final chat line.
+The CLI prints `/compact` at the end of normal non-JSON capture output.
+
 Advanced usage:
 
 ```bash

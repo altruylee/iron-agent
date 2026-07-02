@@ -3,6 +3,7 @@
 ## Directory
 
 - [0.1.0](#010)
+- [0.4.2](#042)
 - [0.4.1](#041)
 - [0.4.0](#040)
 - [0.3.9](#039)
@@ -16,6 +17,12 @@
 - [0.3.2](#032)
 - [0.3.0](#030)
 - [0.2.0](#020)
+
+## 0.4.2
+
+- Connected `workspace/meta/memory-candidates.md` procedure candidates to the SOP promotion loop.
+- Added daily maintenance metrics for new candidates, visible candidates, auto-promoted SOPs, awaiting user review, and no-input days.
+- Added `/compact` as the final normal `iron capture` output line and documented the chat behavior.
 
 ## 0.4.1
 

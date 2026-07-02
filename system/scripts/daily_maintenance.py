@@ -211,10 +211,14 @@ def detect_memory_conflicts(root: Path, limit: int = 20) -> list[str]:
 
 def extract_maintenance_metrics(root: Path, now: datetime, lines: list[str], savings: dict[str, int]) -> dict[str, object]:
     joined = "\n".join(lines)
-    candidates = first_int(r"Prepared\s+(\d+)\s+memory candidates", joined)
+    new_candidates = first_int(r"Prepared\s+(\d+)\s+memory candidates", joined)
     promoted_sops = first_int(r"Promoted SOP files:\s*(\d+)", joined)
+    promoted_sop_bullets = first_int(r"Promoted SOP bullets:\s*(\d+)", joined)
     semantic_records = first_int(r"Semantic index rebuilt:\s*(\d+)\s+records", joined)
     conflicts = first_int(r"Potential memory conflicts:\s*(\d+)", joined)
+    visible_candidates = len(candidate_lines(root))
+    awaiting_review = max(0, visible_candidates - promoted_sop_bullets)
+    no_input_today = new_candidates == 0 and visible_candidates == 0
     indexes = count_index_files(root)
     sop_total = count_sops(root)
     maturity = min(99, 10 + sop_total * 3 + indexes)
@@ -226,20 +230,28 @@ def extract_maintenance_metrics(root: Path, now: datetime, lines: list[str], sav
         "full_memory_tokens": savings["all_memory_tokens"],
         "routing_surface_tokens": savings["routing_surface_tokens"],
         "savings_percent": savings["estimated_savings_percent"],
-        "memory_candidates": candidates,
+        "memory_candidates": new_candidates,
+        "new_candidates": new_candidates,
+        "visible_candidates": visible_candidates,
         "promoted_sops": promoted_sops,
-        "rules_promoted": max(0, candidates - promoted_sops),
+        "auto_promoted_sops": promoted_sops,
+        "promoted_sop_bullets": promoted_sop_bullets,
+        "awaiting_user_review": awaiting_review,
+        "no_input_today": no_input_today,
+        "rules_promoted": max(0, new_candidates - promoted_sops),
         "indexes_slimmed": indexes,
         "semantic_records": semantic_records,
         "potential_conflicts": conflicts,
         "sop_total": sop_total,
         "maturity_level": maturity,
         "events": [
-            f"Prepared {candidates} memory candidates",
-            f"Promoted {promoted_sops} SOP files",
+            f"Prepared {new_candidates} new memory candidates",
+            f"Visible candidates awaiting review: {awaiting_review}",
+            f"Auto-promoted {promoted_sops} SOP files and {promoted_sop_bullets} SOP bullets",
             f"Checked {indexes} low-token indexes",
             f"Rebuilt {semantic_records} semantic routes",
             f"Found {conflicts} potential conflicts; latest memory wins by default",
+            f"No input today: {str(no_input_today).lower()}",
             f"Estimated {savings['estimated_avoided_tokens']} tokens avoided",
         ],
     }
@@ -389,13 +401,13 @@ def render_observatory_html(data: dict[str, object]) -> str:
     <header><div class="brand"><div class="mark"></div><div><h1>Iron Agent Memory Observatory</h1><p>Daily Maintenance / Long-term Intelligence / Token Efficiency</p></div></div><div class="status"><i></i><span id="statusText"></span></div></header>
     <section class="hero">
       <div class="hero-copy"><p class="eyebrow" id="eyebrow"></p><h2>Your agent learned while you were away. <span>Quietly.</span></h2><p class="lead">Iron Agent compressed traces into routable memory, promoted stable rules, trimmed indexes, and kept the daily context surface small enough for fast, precise work.</p><div class="actions"><div class="button primary" id="savedPill"></div><div class="button" id="cumulativePill"></div><div class="button" id="reductionPill"></div></div></div>
-      <aside class="agent-core"><div class="core-title"><span>Agent Maturity Core</span><strong id="levelText"></strong></div><div class="orb-wrap"><div class="ring"></div><div class="ring two"></div><div class="orb"></div><div class="node n1" id="nodePrompts"></div><div class="node n2" id="nodeRules"></div><div class="node n3" id="nodeSop"></div><div class="node n4" id="nodeIndex"></div></div><div class="mini-grid"><div class="mini"><b id="miniRules"></b><span>candidate rules</span></div><div class="mini"><b id="miniSops"></b><span>active SOPs</span></div><div class="mini"><b id="miniReduction"></b><span>read reduction</span></div></div></aside>
+      <aside class="agent-core"><div class="core-title"><span>Agent Maturity Core</span><strong id="levelText"></strong></div><div class="orb-wrap"><div class="ring"></div><div class="ring two"></div><div class="orb"></div><div class="node n1" id="nodePrompts"></div><div class="node n2" id="nodeRules"></div><div class="node n3" id="nodeSop"></div><div class="node n4" id="nodeIndex"></div></div><div class="mini-grid"><div class="mini"><b id="miniRules"></b><span>awaiting review</span></div><div class="mini"><b id="miniSops"></b><span>active SOPs</span></div><div class="mini"><b id="miniReduction"></b><span>read reduction</span></div></div></aside>
     </section>
     <section class="metrics">
       <article class="card"><p class="metric-label">Today Saved</p><div class="metric-value cyan" data-key="saved_today">0</div><div class="metric-note">tokens avoided by routing first</div></article>
       <article class="card"><p class="metric-label">Cumulative Saved</p><div class="metric-value green" data-key="cumulative_saved">0</div><div class="metric-note">maintenance history total</div></article>
-      <article class="card"><p class="metric-label">Candidates</p><div class="metric-value" data-key="memory_candidates">0</div><div class="metric-note">new memory candidates</div></article>
-      <article class="card"><p class="metric-label">SOPs Promoted</p><div class="metric-value amber" data-key="promoted_sops">0</div><div class="metric-note">stable procedures captured</div></article>
+      <article class="card"><p class="metric-label">New Candidates</p><div class="metric-value" data-key="new_candidates">0</div><div class="metric-note">fresh memory candidates</div></article>
+      <article class="card"><p class="metric-label">Auto SOPs</p><div class="metric-value amber" data-key="auto_promoted_sops">0</div><div class="metric-note">procedures promoted</div></article>
       <article class="card"><p class="metric-label">Semantic Routes</p><div class="metric-value pink" data-key="semantic_records">0</div><div class="metric-note">local summary vectors</div></article>
     </section>
     <section class="dashboard">
@@ -419,11 +431,11 @@ def render_observatory_html(data: dict[str, object]) -> str:
     document.getElementById("cumulativePill").textContent = `${{fmt(DATA.cumulative_saved)}} cumulative saved`;
     document.getElementById("reductionPill").textContent = `${{today.savings_percent}}% memory read reduction`;
     document.getElementById("levelText").textContent = `Level ${{today.maturity_level}}`;
-    document.getElementById("nodePrompts").textContent = `Candidates +${{today.memory_candidates}}`;
-    document.getElementById("nodeRules").textContent = `Rules +${{today.rules_promoted}}`;
-    document.getElementById("nodeSop").textContent = `SOP +${{today.promoted_sops}}`;
+    document.getElementById("nodePrompts").textContent = `Candidates +${{today.new_candidates}}`;
+    document.getElementById("nodeRules").textContent = `Review ${{today.awaiting_user_review}}`;
+    document.getElementById("nodeSop").textContent = `SOP +${{today.auto_promoted_sops}}`;
     document.getElementById("nodeIndex").textContent = `Semantic ${{today.semantic_records}}`;
-    document.getElementById("miniRules").textContent = today.rules_promoted;
+    document.getElementById("miniRules").textContent = today.awaiting_user_review;
     document.getElementById("miniSops").textContent = today.sop_total;
     document.getElementById("miniReduction").textContent = `${{today.savings_percent}}%`;
     document.querySelectorAll("[data-key]").forEach((el) => animateNumber(el, el.dataset.key === "cumulative_saved" ? DATA.cumulative_saved : today[el.dataset.key]));
@@ -455,6 +467,12 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
     candidates = candidate_lines(root, limit=50)
     conflicts = detect_memory_conflicts(root, limit=20)
     semantic_records = count_jsonl(root / "workspace" / "memory" / "semantic_index.jsonl")
+    joined = "\n".join(lines)
+    new_candidates = first_int(r"Prepared\s+(\d+)\s+memory candidates", joined)
+    auto_promoted_sops = first_int(r"Promoted SOP files:\s*(\d+)", joined)
+    promoted_sop_bullets = first_int(r"Promoted SOP bullets:\s*(\d+)", joined)
+    awaiting_review = max(0, len(candidates) - promoted_sop_bullets)
+    no_input_today = new_candidates == 0 and not candidates
     report_dir = root / "output" / "maintenance"
     report_dir.mkdir(parents=True, exist_ok=True)
     report_path = report_dir / f"{now.date().isoformat()}-daily-maintenance.md"
@@ -475,6 +493,12 @@ def write_report(root: Path, now: datetime, lines: list[str]) -> Path:
         f"- Run time: `{now.isoformat(timespec='seconds')}`",
         f"- Estimated avoided tokens: `{savings['estimated_avoided_tokens']}`",
         f"- Estimated savings: `{savings['estimated_savings_percent']}%`",
+        f"- New candidates: `{new_candidates}`",
+        f"- Visible candidates: `{len(candidates)}`",
+        f"- Auto-promoted SOP files: `{auto_promoted_sops}`",
+        f"- Auto-promoted SOP bullets: `{promoted_sop_bullets}`",
+        f"- Awaiting user review: `{awaiting_review}`",
+        f"- No input today: `{str(no_input_today).lower()}`",
         f"- Semantic route records: `{semantic_records}`",
         f"- Potential conflicts: `{len(conflicts)}`; latest candidate has priority by default.",
         "",
@@ -710,7 +734,9 @@ def main() -> int:
         lines.append(f"semantic stderr: {semantic_result.stderr.strip()}")
 
     conflicts = detect_memory_conflicts(root)
+    visible_candidates = len(candidate_lines(root))
     lines.append(f"Potential memory conflicts: {len(conflicts)}; latest candidate has priority by default.")
+    lines.append(f"Visible candidates: {visible_candidates}; awaiting user review is shown in the report.")
 
     savings = token_savings_summary(root)
     lines.append(

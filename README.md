@@ -273,6 +273,10 @@ summarize only currently visible context into `today-chat.md`, then run
 `iron capture`. This does not provide access to the platform's full official
 transcript unless that transcript was exported into the workspace.
 
+After reporting the capture result, the agent should send `/compact` as the
+final chat line. The CLI also prints `/compact` at the end of normal
+`iron capture` output.
+
 After successful capture, the source chat file is removed by default so full
 chat text does not remain in the workspace. Use `--keep-source` only when raw
 input retention is intentional.

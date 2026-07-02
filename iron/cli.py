@@ -347,6 +347,7 @@ def capture(
             typer.echo(maintenance["stdout"])
         if maintenance.get("stderr"):
             typer.echo(maintenance["stderr"])
+    typer.echo("/compact")
 
 
 @app.command()

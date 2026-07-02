@@ -148,6 +148,7 @@ Instead:
 4. Run `iron capture`.
 5. Report the generated digest, memory candidate file, daily maintenance HTML,
    and `output/maintenance/index.html`.
+6. Send `/compact` as the final chat line after the capture report.
 
 ## Installation State
 

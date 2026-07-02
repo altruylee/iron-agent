@@ -24,7 +24,8 @@ For every task:
 8. Daily maintenance consolidates today's workspace traces through
    `system/skills/daily-conversation-consolidation.md`.
 9. If the user types `iron capture`, summarize only currently visible context
-   into `today-chat.md`, then run `iron capture`.
+   into `today-chat.md`, then run `iron capture` and send `/compact` as the
+   final chat line.
 
 ## Memory
 
@@ -40,6 +41,7 @@ Silent consolidation policy:
   project facts, and unfinished context.
 - `iron capture` in chat means capture currently visible context into
   `today-chat.md` first; it does not grant access to full platform transcripts.
+- After reporting an `iron capture` result, send `/compact` as the final line.
 
 ## Rules
 

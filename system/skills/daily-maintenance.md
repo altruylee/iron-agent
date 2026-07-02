@@ -76,7 +76,9 @@ The script will:
 3. Run memory candidate preparation.
 4. Generate `output/maintenance/YYYY-MM-DD-conversation-digest.md` from today's
    workspace traces.
-5. Run local shadow review to promote deterministic prompt/rule/SOP candidates.
+5. Run local shadow review to promote deterministic SOP candidates from both
+   `workspace/memory/shadow-review/` and `workspace/meta/memory-candidates.md`
+   procedure entries.
 6. Slim indexes and keep top-level routing low-token.
 7. Rebuild `workspace/memory/semantic_index.jsonl` and
    `workspace/memory/semantic_vectors.jsonl`.
@@ -85,7 +87,9 @@ The script will:
 10. Optionally apply global memory candidates if configured.
 11. Write `workspace/meta/maintenance-state.json`.
 12. Write `workspace/meta/codex-automation-trigger.json`.
-13. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md`.
+13. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.md` with separate
+    counts for new candidates, visible candidates, auto-promoted SOPs,
+    awaiting user review, and no-input days.
 14. Write `output/maintenance/YYYY-MM-DD-daily-maintenance.html`.
 15. Update `output/maintenance/index.html`.
 16. Update `output/maintenance/maintenance-history.json`.

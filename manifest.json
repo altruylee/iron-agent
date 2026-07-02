@@ -1,6 +1,6 @@
 {
   "name": "iron-agent-pack",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A local Codex workspace pack for durable memory, domain knowledge, logs, permissions, and self-maintaining skills.",
   "entrypoints": {
     "workspace": "AGENTS.md",
